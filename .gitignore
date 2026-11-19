@@ -1,0 +1,40 @@
+# Python bytecode and test/runtime caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local Python environments and build artifacts
+.venv/
+venv/
+env/
+ENV/
+build/
+dist/
+*.egg-info/
+
+# User-provided trial data and generated results
+/inputs/
+/outputs/
+/ref_outputs/
+/src/monolithic/Modular_V2/inputs/
+/src/monolithic/Modular_V2/outputs/
+/src/monolithic/clubfitting/output/
+
+# Local test data copies (keep the pytest source files)
+/tests/**/*.json
+
+# Legacy monolithic scripts are maintained outside this modular project
+/monolithic_scripts/
+
+# Local history and editor/OS files
+.history/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.log

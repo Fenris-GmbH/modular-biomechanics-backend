@@ -1,0 +1,95 @@
+# Paste these into your movement class; initialize self._club_fitting = None in __init__.
+# At module scope: from biomechanics.open_movements.club_fitting import ClubFittingComputation
+
+def _get_club_fitting(self):
+    if self._club_fitting is None:
+        self._club_fitting = ClubFittingComputation(self._get_context())
+    return self._club_fitting
+
+def calculate_movement_type(self):
+    return {'movement_type': self._get_club_fitting().get('movement_type')}
+
+def calculate_M2C_insights(self):
+    return {'M2C_insights': self._get_club_fitting().get('M2C_insights')}
+
+def calculate_Performance_metrics(self):
+    return {'Performance_metrics': self._get_club_fitting().get('Performance_metrics')}
+
+def calculate_M2C_power(self):
+    return {'M2C_power': self._get_club_fitting().get('M2C_power')}
+
+def calculate_M2C_club_mechanics(self):
+    return {'M2C_club_mechanics': self._get_club_fitting().get('M2C_club_mechanics')}
+
+def calculate_M2C_club_mechanics_highlights(self):
+    return {'M2C_club_mechanics_highlights': self._get_club_fitting().get('M2C_club_mechanics_highlights')}
+
+def calculate_M2C_wrist(self):
+    return {'M2C_wrist': self._get_club_fitting().get('M2C_wrist')}
+
+def calculate_M2C_force_vectors_hand_r_3d(self):
+    return {'M2C_force_vectors_hand_r_3d': self._get_club_fitting().get('M2C_force_vectors_hand_r_3d')}
+
+def calculate_M2C_force_vectors_bat_3d(self):
+    return {'M2C_force_vectors_bat_3d': self._get_club_fitting().get('M2C_force_vectors_bat_3d')}
+
+def calculate_M2C_skeleton_3d(self):
+    return {'M2C_skeleton_3d': self._get_club_fitting().get('M2C_skeleton_3d')}
+
+def calculate_pitcher_metric_equivalents(self):
+    return {'pitcher_metric_equivalents': self._get_club_fitting().get('pitcher_metric_equivalents')}
+
+def calculate_inPlaneMetrics(self):
+    return {'inPlaneMetrics': self._get_club_fitting().get('inPlaneMetrics')}
+
+def calculate_outOfPlaneMetrics(self):
+    return {'outOfPlaneMetrics': self._get_club_fitting().get('outOfPlaneMetrics')}
+
+def calculate_M2C_inplane_vectors(self):
+    return {'M2C_inplane_vectors': self._get_club_fitting().get('M2C_inplane_vectors')}
+
+def calculate_M2C_inplane_vectors_3d(self):
+    return {'M2C_inplane_vectors_3d': self._get_club_fitting().get('M2C_inplane_vectors_3d')}
+
+def calculate_M2C_kinetics_3d(self):
+    return {'M2C_kinetics_3d': self._get_club_fitting().get('M2C_kinetics_3d')}
+
+def calculate_generic(self):
+    return {'generic': self._get_club_fitting().get('generic')}
+
+def calculate_all_club_fitting(self):
+    return self._get_club_fitting().compute_all()
+
+def calculate_generic_metric_equivalents(self):
+    return {'generic_metric_equivalents': self._get_club_fitting().get('generic_metric_equivalents')}
+
+def calculate_M2C_other_side_error(self):
+    return {'M2C_other_side_error': self._get_club_fitting().get('M2C_other_side_error')}
+
+def calculate_generic_widgets_error(self):
+    return {'generic_widgets_error': self._get_club_fitting().get('generic_widgets_error')}
+
+def calculate_M2C_power_left(self):
+    return {'M2C_power_left': self._get_club_fitting().get('M2C_power_left')}
+
+def calculate_M2C_power_right(self):
+    return {'M2C_power_right': self._get_club_fitting().get('M2C_power_right')}
+
+def calculate_M2C_club_mechanics_left(self):
+    return {'M2C_club_mechanics_left': self._get_club_fitting().get('M2C_club_mechanics_left')}
+
+def calculate_M2C_club_mechanics_right(self):
+    return {'M2C_club_mechanics_right': self._get_club_fitting().get('M2C_club_mechanics_right')}
+
+def calculate_M2C_club_mechanics_highlights_left(self):
+    return {'M2C_club_mechanics_highlights_left': self._get_club_fitting().get('M2C_club_mechanics_highlights_left')}
+
+def calculate_M2C_club_mechanics_highlights_right(self):
+    return {'M2C_club_mechanics_highlights_right': self._get_club_fitting().get('M2C_club_mechanics_highlights_right')}
+
+def calculate_M2C_wrist_left(self):
+    return {'M2C_wrist_left': self._get_club_fitting().get('M2C_wrist_left')}
+
+def calculate_M2C_wrist_right(self):
+    return {'M2C_wrist_right': self._get_club_fitting().get('M2C_wrist_right')}
+

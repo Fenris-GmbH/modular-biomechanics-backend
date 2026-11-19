@@ -1,0 +1,6 @@
+python force_screen_modules.py ".\inputs\pose_3d.json" ".\outputs" ".\inputs\pose_2d.json"
+
+
+Specific modules to return response: 
+
+python -c "import json; from force_screen_modules import compute_all; j3=json.load(open('./inputs/pose_3d.json')); j2=json.load(open('./inputs/pose_2d.json')); compute_all(j3,j2,keys=['forces','impulse','energy', 'COM_MODELS'],output_dir='./outputs')"
