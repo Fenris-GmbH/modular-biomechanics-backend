@@ -30,6 +30,7 @@ dist/
 
 # Legacy monolithic scripts are maintained outside this modular project
 /monolithic_scripts/
+/src/monolithic/
 
 # Local history and editor/OS files
 .history/
