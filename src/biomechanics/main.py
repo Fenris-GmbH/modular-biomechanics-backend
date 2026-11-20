@@ -423,16 +423,13 @@ if __name__ == "__main__":
 
     # forces
     session_all_forces = session.calculate_all_forces()
+    for force_key in session_all_forces.keys():
+        save_jsons(swing_id, force_key, session_all_forces[force_key])
 
     # clubfitting
-    # Calculate all applicable club-fitting metrics
-    # session_club_metrics, club_errors, club_skipped = calculate_club_metrics(session)
-    # print("Successful metrics:", list(session_club_metrics.keys()))
-    # print("Errors:", club_errors)
-    # print("Skipped metrics:", club_skipped)
-    # Or get all available outputs
     session_all_club = session.calculate_all_club_fitting()
-    # compare_dict_subset(session_kin_seq, ref_bs_output["kinematic_sequence"])
+    for club_key in session_all_club.keys():
+        save_jsons(swing_id, club_key, session_all_club[club_key])
 
     # comparisons
     all_passed(session_basic_time, ref_bs_output)

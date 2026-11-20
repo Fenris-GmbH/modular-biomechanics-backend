@@ -105,8 +105,8 @@ from scripts.main_runner import run_all
 
 results = run_all(
     swing_ids=[
-        "kb-dc1-36482-1792133275",
-        "m2c-dc1-690-1786440469_pitching",
+        swing_id_1,
+        swing_id_2,
     ],
     save_json=True,
 )
@@ -129,7 +129,7 @@ To choose IDs when launching the script directly, edit the call in the
 
 ```python
 main(
-    swing_ids=["kb-dc1-36482-1792133275"],
+    swing_ids=[swing_id],
     save_json=True,
 )
 ```
@@ -228,7 +228,7 @@ club-fitting, so it receives the generic club-fitting methods shown above.
 
 The suite compares modular results directly against the matching files in
 `ref_outputs/<swing_id>/` for every JSON input copied into
-`tests/fixtures/force_inputs/`. It calls individual force
+`tests/fixtures/golden_inputs/`. It calls individual force
 methods, the four basic screen methods, and all club methods available for each
 movement type. The comparison checks missing and extra nested keys and all
 returned scalar/list values using `rel_tol=1e-9` and `abs_tol=1e-12`.

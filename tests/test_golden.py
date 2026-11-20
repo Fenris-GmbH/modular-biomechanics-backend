@@ -8,10 +8,10 @@ from pathlib import Path
 
 import pytest
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-INPUT_DIR = PROJECT_ROOT / "tests" / "fixtures" / "force_inputs"
+INPUT_DIR = PROJECT_ROOT / "tests" / "fixtures" / "golden_inputs"
 REF_OUTPUTS_DIR = PROJECT_ROOT / "ref_outputs"
+EXCLUDE_KEYS = ["error_messages"]
 
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
@@ -100,9 +100,7 @@ FORCE_METHODS = (
 @pytest.mark.parametrize("input_path", INPUT_FILES, ids=lambda path: path.stem)
 def test_modular_force_output_matches_monolithic_golden(input_path):
     swing_id = input_path.stem
-    golden_path = (
-        REF_OUTPUTS_DIR / swing_id / f"{swing_id}_forcescreen.json"
-    )
+    golden_path = REF_OUTPUTS_DIR / swing_id / f"{swing_id}_forcescreen.json"
     assert golden_path.is_file(), f"Missing monolithic golden output: {golden_path}"
 
     input_json = _load_json(input_path)
@@ -114,6 +112,7 @@ def test_modular_force_output_matches_monolithic_golden(input_path):
         result = getattr(session, method_name)()
         if result:
             modular_output.update(result)
+
     differences = _compare_values(golden_output, modular_output)
 
     _assert_matches_golden(differences, "force screen")
@@ -125,28 +124,27 @@ def _load_json(path):
 
 
 def _assert_matches_golden(differences, label):
-    assert not differences["missing"], (
-        f"{label} output is missing monolithic keys:\n"
-        + "\n".join(differences["missing"][:20])
+    assert not differences[
+        "missing"
+    ], f"{label} output is missing monolithic keys:\n" + "\n".join(
+        differences["missing"][:20]
     )
-    assert not differences["extra"], (
-        f"{label} output has keys absent from the monolithic golden:\n"
-        + "\n".join(differences["extra"][:20])
+    assert not differences[
+        "extra"
+    ], f"{label} output has keys absent from the monolithic golden:\n" + "\n".join(
+        differences["extra"][:20]
     )
     assert differences["count"] == 0, (
         f"{differences['count']} {label} values differ from the monolithic golden. "
         f"Counts by output: {differences['counts_by_output']}. "
-        "First differences:\n"
-        + "\n".join(differences["values"])
+        "First differences:\n" + "\n".join(differences["values"])
     )
 
 
 @pytest.mark.parametrize("input_path", INPUT_FILES, ids=lambda path: path.stem)
 def test_modular_basic_screen_methods_match_monolithic_golden(input_path):
     swing_id = input_path.stem
-    golden_path = (
-        REF_OUTPUTS_DIR / swing_id / f"{swing_id}_basicscreen.json"
-    )
+    golden_path = REF_OUTPUTS_DIR / swing_id / f"{swing_id}_basicscreen.json"
     assert golden_path.is_file(), f"Missing basic screen golden output: {golden_path}"
 
     input_json = _load_json(input_path)
@@ -162,7 +160,13 @@ def test_modular_basic_screen_methods_match_monolithic_golden(input_path):
     }
     # error_messages is monolithic diagnostic metadata, not a returned modular
     # method result. Compare every method result and the modular context time.
-    golden_methods = {key: golden_output[key] for key in modular_output}
+    golden_methods = {key: golden_output[key] for key in golden_output}
+    for key in EXCLUDE_KEYS:
+        try:
+            golden_methods.pop(key)
+        except Exception as e:
+            print(e)
+            pass
     differences = _compare_values(golden_methods, modular_output)
     _assert_matches_golden(differences, "basic screen")
 
@@ -170,9 +174,7 @@ def test_modular_basic_screen_methods_match_monolithic_golden(input_path):
 @pytest.mark.parametrize("input_path", INPUT_FILES, ids=lambda path: path.stem)
 def test_modular_applicable_club_methods_match_monolithic_golden(input_path):
     swing_id = input_path.stem
-    golden_path = (
-        REF_OUTPUTS_DIR / swing_id / f"{swing_id}_clubFitting.json"
-    )
+    golden_path = REF_OUTPUTS_DIR / swing_id / f"{swing_id}_clubFitting.json"
     assert golden_path.is_file(), f"Missing club fitting golden output: {golden_path}"
 
     input_json = _load_json(input_path)
@@ -189,4 +191,5 @@ def test_modular_applicable_club_methods_match_monolithic_golden(input_path):
             modular_output.update(result)
 
     differences = _compare_values(golden_output, modular_output)
+
     _assert_matches_golden(differences, "club fitting")
