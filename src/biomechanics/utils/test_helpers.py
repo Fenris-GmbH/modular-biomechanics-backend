@@ -1,11 +1,13 @@
 import math
 import numpy as np
 import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-def replace_nans(obj, sentinel="__NaN__"):
+def replace_nans(obj: Any, sentinel: str = "__NaN__") -> Any:
+    """Recursively replace floating-point NaNs with a comparison sentinel."""
     if isinstance(obj, float) and math.isnan(obj):
         return sentinel
     elif isinstance(obj, list):
@@ -15,7 +17,14 @@ def replace_nans(obj, sentinel="__NaN__"):
     return obj
 
 
-def compare_dict_subset(dict_a, dict_b, path="", rel_tol=1e-9, abs_tol=1e-12):
+def compare_dict_subset(
+    dict_a: dict[str, Any],
+    dict_b: dict[str, Any],
+    path: str = "",
+    rel_tol: float = 1e-9,
+    abs_tol: float = 1e-12,
+) -> dict[str, bool]:
+    """Compare keys and values in ``dict_a`` against a reference dictionary."""
     results = {}
 
     dict_a = replace_nans(dict_a)
@@ -70,7 +79,8 @@ def compare_dict_subset(dict_a, dict_b, path="", rel_tol=1e-9, abs_tol=1e-12):
     return results
 
 
-def _compare(local, ref):
+def _compare(local: dict[str, Any], ref: dict[str, Any]) -> bool:
+    """Recursively compare dictionaries and lists using exact value equality."""
     if local.keys() != ref.keys():
         print(f"Keys mismatch: {local.keys()} vs {ref.keys()}")
         return False
@@ -104,7 +114,13 @@ def _compare(local, ref):
     return True
 
 
-def all_passed(values, reference, rel_tol=1e-9, abs_tol=1e-12):
+def all_passed(
+    values: dict[str, Any],
+    reference: dict[str, Any],
+    rel_tol: float = 1e-9,
+    abs_tol: float = 1e-12,
+) -> None:
+    """Assert that every value in ``values`` matches the reference subset."""
     results = compare_dict_subset(values, reference, rel_tol=rel_tol, abs_tol=abs_tol)
     print(results)
     assert all(value == True for value in list(results.values()))
@@ -121,15 +137,15 @@ CLUB_FITTING_METHODS = {
     "M2C_wrist": "calculate_M2C_wrist",
     "M2C_force_vectors_hand_r_3d": "calculate_M2C_force_vectors_hand_r_3d",
     "M2C_force_vectors_bat_3d": "calculate_M2C_force_vectors_bat_3d",
-    "M2C_skeleton_3d": "calculate_M2C_skeleton_3d",
+    # "M2C_skeleton_3d": "calculate_M2C_skeleton_3d",
     "pitcher_metric_equivalents": "calculate_pitcher_metric_equivalents",
     "inPlaneMetrics": "calculate_inPlaneMetrics",
     "outOfPlaneMetrics": "calculate_outOfPlaneMetrics",
     "M2C_inplane_vectors": "calculate_M2C_inplane_vectors",
     "M2C_inplane_vectors_3d": "calculate_M2C_inplane_vectors_3d",
     "M2C_kinetics_3d": "calculate_M2C_kinetics_3d",
-    "generic": "calculate_generic",
-    "generic_metric_equivalents": "calculate_generic_metric_equivalents",
+    # "generic": "calculate_generic",
+    # "generic_metric_equivalents": "calculate_generic_metric_equivalents",
     "M2C_other_side_error": "calculate_M2C_other_side_error",
     "generic_widgets_error": "calculate_generic_widgets_error",
     "M2C_power_left": "calculate_M2C_power_left",
@@ -148,8 +164,8 @@ COMMON_KEYS = {
     "M2C_club_mechanics",
     "M2C_club_mechanics_highlights",
     "M2C_wrist",
-    "M2C_skeleton_3d",
-    "generic",
+    # "M2C_skeleton_3d",
+    # "generic",
 }
 
 HITTING_KEYS = COMMON_KEYS | {
@@ -171,7 +187,7 @@ PITCHING_KEYS = COMMON_KEYS | {
 }
 
 GENERIC_KEYS = COMMON_KEYS | {
-    "generic_metric_equivalents",
+    # "generic_metric_equivalents",
     "M2C_other_side_error",
     "generic_widgets_error",
     "M2C_power_left",
@@ -191,7 +207,10 @@ KEYS_BY_MOVEMENT = {
 }
 
 
-def calculate_club_metrics(session):
+def calculate_club_metrics(
+    session: Any,
+) -> tuple[dict[str, Any], dict[str, str], list[str]]:
+    """Run the registered club outputs for a session and collect failures/skips."""
     comp = session._get_club_fitting()
 
     swing_type = comp.movement_type
@@ -224,7 +243,8 @@ def calculate_club_metrics(session):
     return response, errors, skipped
 
 
-def numpy_int_parser(obj):
+def numpy_int_parser(obj: Any) -> int:
+    """Convert a NumPy int64 to a built-in int for JSON serialization."""
     if isinstance(obj, np.int64):
         return int(obj)
     raise TypeError

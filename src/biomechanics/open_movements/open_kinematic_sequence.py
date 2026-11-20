@@ -1,9 +1,12 @@
+from typing import Any
+
 import numpy as np
 from scipy.signal import savgol_filter
 from biomechanics.utils.normalization import safe_normalize
 
 
-def kinematic_sequence(ctx):
+def kinematic_sequence(ctx: Any) -> dict[str, Any]:
+    """Calculate rotational-speed series and heatmap values by body segment."""
     # ctx = self._get_context()
     dt = 1 / ctx.frame_rate
     m = ctx.markers
@@ -20,14 +23,14 @@ def kinematic_sequence(ctx):
     #################################################################### KINEMATIC SEQUENCE ##################################################################
 
     def rotational_velocity_about_spine(
-        proximal,
-        distal,
-        spine_high,
-        spine_low,
-        dt,
-        filter_win,
-        filter_ord=2,
-    ):
+        proximal: np.ndarray,
+        distal: np.ndarray,
+        spine_high: np.ndarray,
+        spine_low: np.ndarray,
+        dt: float,
+        filter_win: int,
+        filter_ord: int = 2,
+    ) -> np.ndarray:
         """
         Computes signed angular velocity (deg/s)
         around instantaneous spine axis.
@@ -105,22 +108,25 @@ def kinematic_sequence(ctx):
     zero_array = np.array([0, 0])
 
     kinematic_sequence = {
-        "Pelvis_Rotational_Speed": pelvis_rot_speed.tolist(),
-        "Ut_Rotational_Speed": UT_rot_speed.tolist(),
-        "Lead_Arm_Rotational_Speed": arm_rot_speed.tolist(),
-        "Lead_Hand_Rotational_Speed": hand_rot_speed.tolist(),
+        "pelvis_rotational_speed": pelvis_rot_speed.tolist(),
+        "ut_rotational_speed": UT_rot_speed.tolist(),
+        "lead_arm_rotational_speed": arm_rot_speed.tolist(),
+        "lead_hand_rotational_speed": hand_rot_speed.tolist(),
         "trail_arm_rot_speed": trail_arm_rot_speed.tolist(),
         "trail_hand_rot_speed": trail_hand_rot_speed.tolist(),
     }
 
     # Heat Map Values for Kinematic Sequence
-    def kin_seq_heatmap(kinematic_sequence: dict):
+    def kin_seq_heatmap(
+        kinematic_sequence: dict[str, Any],
+    ) -> dict[str, list[float]]:
+        """Normalize each available rotational-speed series for heatmap use."""
         heatmap_labels = [
-            "Pelvis_Rotational_Speed",
-            "Ut_Rotational_Speed",
-            "Lead_Arm_Rotational_Speed",
-            "Lead_Hand_Rotational_Speed",
-            "Club_Rotational_Speed",
+            "pelvis_rotational_speed",
+            "ut_rotational_speed",
+            "lead_arm_rotational_speed",
+            "lead_hand_rotational_speed",
+            "club_rotational_speed",
             "trail_arm_rot_speed",
             "trail_hand_rot_speed",
         ]
@@ -154,4 +160,4 @@ def kinematic_sequence(ctx):
         kinematic_sequence,
     )
     kinematic_sequence.update(kinematic_sequence_hm_dict)
-    return kinematic_sequence
+    return {"kinematic_sequence": kinematic_sequence}

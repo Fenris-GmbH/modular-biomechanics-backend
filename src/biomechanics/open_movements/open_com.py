@@ -1,7 +1,20 @@
+from typing import Any
+
+import numpy as np
 from biomechanics.constants import SEGMENT_MASS_FRACTIONS
 
 
-def com(ctx, option=1):
+def com(ctx: Any, option: int = 1) -> np.ndarray:
+    """Calculate a weighted body center of mass for a supported body region.
+
+    Args:
+        ctx: Prepared movement context containing marker trajectories.
+        option: Region selector: 1 full body, 4 body without arms, 5 lower body,
+            or 6 upper body.
+
+    Returns:
+        An ``(frames, 3)`` center-of-mass trajectory.
+    """
     m = ctx.markers
     pelvis = m["pelvis"]
     hip_l = m["hip_l"]

@@ -50,7 +50,7 @@ work in some environments, but is not the supported configuration.
 | `src/biomechanics/open_movements/club_fitting/` | Movement-specific club-fitting calculations and output methods |
 | `src/data_ingestion/` | Input-loading utilities and data models |
 | `scripts/main_runner.py` | Callable runner for one or more local input trials |
-| `tests/test_force_output_golden.py` | Per-input golden comparisons for basic, force, and applicable club outputs |
+| `tests/test_golden.py` | Per-input golden comparisons for basic, force, and applicable club outputs |
 | `tests/fixtures/` | Local test input copies for the golden suite |
 | `inputs/` | Local input trials |
 | `outputs/` | JSON results written by the runner |
@@ -95,7 +95,7 @@ For example, run one trial without writing files:
 ```python
 from scripts.main_runner import run_swing
 
-results = run_swing("kb-dc1-36482-1792133275", save_json=False)
+results = run_swing(swing_id, save_json=False)
 ```
 
 Run selected trials and write each nonempty method result separately:
@@ -105,8 +105,8 @@ from scripts.main_runner import run_all
 
 results = run_all(
     swing_ids=[
-        "kb-dc1-36482-1792133275",
-        "m2c-dc1-690-1786440469_pitching",
+        swing_id_1,
+        swing_id_2,
     ],
     save_json=True,
 )
@@ -129,7 +129,7 @@ To choose IDs when launching the script directly, edit the call in the
 
 ```python
 main(
-    swing_ids=["kb-dc1-36482-1792133275"],
+    swing_ids=[swing_id],
     save_json=True,
 )
 ```
@@ -198,8 +198,6 @@ method, including the movement type for which the method is registered.
 | `M2C_club_mechanics` | Yes | Yes | Yes |
 | `M2C_club_mechanics_highlights` | Yes | Yes | Yes |
 | `M2C_wrist` | Yes | Yes | Yes |
-| `M2C_skeleton_3d` | Yes | Yes | Yes |
-| `generic` | Yes | Yes | Yes |
 | `M2C_insights` | Yes | Yes | — |
 | `Performance_metrics` | Yes | Yes | — |
 | `M2C_force_vectors_bat_3d` | Yes | — | — |
@@ -210,7 +208,6 @@ method, including the movement type for which the method is registered.
 | `M2C_kinetics_3d` | Yes | — | — |
 | `M2C_force_vectors_hand_r_3d` | — | Yes | — |
 | `pitcher_metric_equivalents` | — | Yes | — |
-| `generic_metric_equivalents` | — | — | Yes |
 | `M2C_other_side_error` | — | — | Yes |
 | `generic_widgets_error` | — | — | Yes |
 | `M2C_power_left`, `M2C_power_right` | — | — | Yes |
@@ -228,7 +225,7 @@ club-fitting, so it receives the generic club-fitting methods shown above.
 
 The suite compares modular results directly against the matching files in
 `ref_outputs/<swing_id>/` for every JSON input copied into
-`tests/fixtures/force_inputs/`. It calls individual force
+`tests/fixtures/golden_inputs/`. It calls individual force
 methods, the four basic screen methods, and all club methods available for each
 movement type. The comparison checks missing and extra nested keys and all
 returned scalar/list values using `rel_tol=1e-9` and `abs_tol=1e-12`.

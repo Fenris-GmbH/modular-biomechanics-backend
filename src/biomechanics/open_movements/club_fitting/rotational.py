@@ -1,6 +1,8 @@
+from typing import Any
+
 from .math_helpers import *
 
-def calculate(state):
+def calculate(state: dict[str, Any]) -> dict[str, Any]:
     """Compute rotational stage with cached dependencies."""
     distal = state.get('distal')
     dt = state.get('dt')

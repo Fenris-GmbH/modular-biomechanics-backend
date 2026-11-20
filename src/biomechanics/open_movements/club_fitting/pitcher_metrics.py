@@ -1,6 +1,8 @@
+from typing import Any
+
 from .math_helpers import *
 
-def calculate(state):
+def calculate(state: dict[str, Any]) -> dict[str, Any]:
     """Compute pitcher_metrics stage with cached dependencies."""
     F_axial_hand = state.get('F_axial_hand')
     F_axial_hand_vec = state.get('F_axial_hand_vec')

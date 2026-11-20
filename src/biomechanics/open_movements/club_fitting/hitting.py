@@ -1,8 +1,10 @@
+from typing import Any
+
 from .math_helpers import *
 
-def calculate(state):
-    json3d = state["json3d"]
+def calculate(state: dict[str, Any]) -> dict[str, Any]:
     """Compute hitting stage with cached dependencies."""
+    json3d = state["json3d"]
     A_l = state.get('A_l')
     B_center = state.get('B_center')
     B_hat = state.get('B_hat')

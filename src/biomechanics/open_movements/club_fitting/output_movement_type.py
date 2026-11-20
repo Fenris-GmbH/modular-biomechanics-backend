@@ -1,7 +1,8 @@
 """Standalone output: movement_type."""
-from .core import resolve
+from typing import Any
+from .core import lowercase_output_keys, resolve
 
-def movement_type(ctx=None, *, computation=None):
-    """Return the original one-key response, calculating only needed stages."""
+def movement_type(ctx: Any = None, *, computation: Any = None) -> dict[str, Any]:
+    """Return the movement_type output dictionary for the supplied context or computation."""
     comp = resolve(computation=computation, ctx=ctx)
-    return {'movement_type': comp.get('movement_type')}
+    return lowercase_output_keys({'movement_type': comp.get('movement_type')})

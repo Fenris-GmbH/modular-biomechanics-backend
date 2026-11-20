@@ -1,6 +1,8 @@
+from typing import Any
+
 from .math_helpers import *
 
-def calculate(state):
+def calculate(state: dict[str, Any]) -> dict[str, Any]:
     """Compute skeleton stage with cached dependencies."""
     ankle_l = state.get('ankle_l')
     ankle_r = state.get('ankle_r')

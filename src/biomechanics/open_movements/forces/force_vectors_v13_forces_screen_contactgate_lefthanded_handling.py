@@ -6,6 +6,7 @@ from scipy.ndimage import median_filter
 import os
 import math
 import logging
+from biomechanics.utils.output_keys import lowercase_output_keys
 
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
@@ -611,7 +612,7 @@ class ForceVectors:
         response (Tz, moment arms, torques, COP trajectory, power, ...) use
         generate_forces_screen()."""
         ctx = self._run_pipeline(json3d)
-        return self._format_legacy_response(ctx)
+        return lowercase_output_keys(self._format_legacy_response(ctx))
 
     def generate_forces_screen(self, json3d, pose2d=None):
         """Response with the same top-level keys / sub-keys as the measured-force
@@ -619,7 +620,7 @@ class ForceVectors:
         _build_forces_screen for the definition of every channel and the list of
         keys that need pose2d."""
         ctx = self._run_pipeline(json3d)
-        return self._build_forces_screen(ctx, pose2d=pose2d)
+        return lowercase_output_keys(self._build_forces_screen(ctx, pose2d=pose2d))
 
     @classmethod
     def process_forces_screen(cls, json3d: dict, pose2d: dict = None, **overrides) -> dict:
@@ -1183,7 +1184,7 @@ class ForceVectors:
         }
 
 
-        return result
+        return lowercase_output_keys(result)
 
     # -------------------- Rotational inertia --------------------
     def _compute_segment_rotational_moment(self, p_prox: np.ndarray, p_dist: np.ndarray,

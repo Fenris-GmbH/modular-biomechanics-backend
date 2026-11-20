@@ -1,9 +1,12 @@
+from typing import Any
+
 import numpy as np
 from scipy import signal
 from biomechanics.constants import CM_TO_INCH
 
 
-def segment_displacements(ctx):
+def segment_displacements(ctx: Any) -> dict[str, Any]:
+    """Calculate filtered head, upper-trunk, and pelvis displacement series."""
     frame_rate = ctx.frame_rate
     m = ctx.markers
     pelvis = m["pelvis"]
@@ -56,22 +59,24 @@ def segment_displacements(ctx):
     chest_thrust_inch = chest_thrust * CM_TO_INCH  # inch
     chest_lift_inch = chest_lift * CM_TO_INCH  # inch
     return {
-        "head_sway": np.around(head_sway, 2).tolist(),
-        "head_thrust": np.around(head_thrust, 2).tolist(),
-        "head_lift": np.around(head_lift, 2).tolist(),
-        "head_sway_inch": np.around(head_sway_inch, 2).tolist(),
-        "head_thrust_inch": np.around(head_thrust_inch, 2).tolist(),
-        "head_lift_inch": np.around(head_lift_inch, 2).tolist(),
-        "UT_sway": np.around(chest_sway, 2).tolist(),
-        "UT_thrust": np.around(chest_thrust, 2).tolist(),
-        "UT_lift": np.around(chest_lift, 2).tolist(),
-        "UT_sway_inch": np.around(chest_sway_inch, 2).tolist(),
-        "UT_thrust_inch": np.around(chest_thrust_inch, 2).tolist(),
-        "UT_lift_inch": np.around(chest_lift_inch, 2).tolist(),
-        "pelvis_sway": np.around(pelvis_sway, 2).tolist(),
-        "pelvis_thrust": np.around(pelvis_thrust, 2).tolist(),
-        "pelvis_lift": np.around(pelvis_lift, 2).tolist(),
-        "pelvis_sway_inch": np.around(pelvis_sway_inch, 2).tolist(),
-        "pelvis_thrust_inch": np.around(pelvis_thrust_inch, 2).tolist(),
-        "pelvis_lift_inch": np.around(pelvis_lift_inch, 2).tolist(),
+        "segment_displacements": {
+            "head_sway": np.around(head_sway, 2).tolist(),
+            "head_thrust": np.around(head_thrust, 2).tolist(),
+            "head_lift": np.around(head_lift, 2).tolist(),
+            "head_sway_inch": np.around(head_sway_inch, 2).tolist(),
+            "head_thrust_inch": np.around(head_thrust_inch, 2).tolist(),
+            "head_lift_inch": np.around(head_lift_inch, 2).tolist(),
+            "ut_sway": np.around(chest_sway, 2).tolist(),
+            "ut_thrust": np.around(chest_thrust, 2).tolist(),
+            "ut_lift": np.around(chest_lift, 2).tolist(),
+            "ut_sway_inch": np.around(chest_sway_inch, 2).tolist(),
+            "ut_thrust_inch": np.around(chest_thrust_inch, 2).tolist(),
+            "ut_lift_inch": np.around(chest_lift_inch, 2).tolist(),
+            "pelvis_sway": np.around(pelvis_sway, 2).tolist(),
+            "pelvis_thrust": np.around(pelvis_thrust, 2).tolist(),
+            "pelvis_lift": np.around(pelvis_lift, 2).tolist(),
+            "pelvis_sway_inch": np.around(pelvis_sway_inch, 2).tolist(),
+            "pelvis_thrust_inch": np.around(pelvis_thrust_inch, 2).tolist(),
+            "pelvis_lift_inch": np.around(pelvis_lift_inch, 2).tolist(),
+        }
     }
