@@ -1,3 +1,5 @@
+from typing import Any
+
 import numpy as np
 import math
 from scipy import signal
@@ -5,7 +7,16 @@ from numpy.linalg import norm
 from biomechanics.constants import SEGMENT_MASS_FRACTIONS
 
 
-def segment_angles(ctx, COM):
+def segment_angles(ctx: Any, COM: np.ndarray) -> dict[str, Any]:
+    """Calculate segment angles and force-screen kinematics from a context.
+
+    Args:
+        ctx: Prepared movement context with markers and capture metadata.
+        COM: Full-body center-of-mass trajectory with one XYZ row per frame.
+
+    Returns:
+        A nested dictionary of segment-angle and derived kinematic series.
+    """
     frame_rate, W = ctx.frame_rate, ctx.weight
     downtheLine = int(ctx.down_the_line)
     m = ctx.markers

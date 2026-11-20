@@ -1,6 +1,7 @@
 """Shared state and dependency scheduler for standalone club-fitting outputs."""
 
 from copy import deepcopy
+from typing import Any, Optional
 from biomechanics.utils.output_keys import lowercase_output_keys
 from . import (
     common,
@@ -66,7 +67,8 @@ MODULES = {
 class ClubFittingComputation:
     """Per-movement staged calculations. Do not reuse after changing inputs."""
 
-    def __init__(self, ctx):
+    def __init__(self, ctx: Any) -> None:
+        """Initialize cached computation state from movement input or context."""
         raw = ctx if isinstance(ctx, dict) else getattr(ctx, "raw_json_3d", None)
         if raw is None:
             raise TypeError(
@@ -80,11 +82,13 @@ class ClubFittingComputation:
         self._stage("common")
 
     @property
-    def movement_type(self):
+    def movement_type(self) -> str:
+        """Return the detected category: hitting, pitching, or generic."""
         return self._state["movement_type"]
 
     @property
-    def available_keys(self):
+    def available_keys(self) -> tuple[str, ...]:
+        """Return output keys applicable to the detected movement category."""
         if self.movement_type == "hitting":
             return KEYS_HITTING
         if self.movement_type == "pitching":
@@ -101,7 +105,8 @@ class ClubFittingComputation:
             # "M2C_skeleton_3d",
         )
 
-    def _stage(self, name):
+    def _stage(self, name: str) -> None:
+        """Calculate a named stage and any prerequisites once per session."""
         if name in self._done:
             return
         dependencies = {
@@ -120,7 +125,8 @@ class ClubFittingComputation:
         self._state.update(MODULES[name].calculate(self._state))
         self._done.add(name)
 
-    def get(self, key):
+    def get(self, key: str) -> Any:
+        """Calculate and return one available output by its internal key."""
         if key == "movement_type":
             return self.movement_type
         if key not in self.available_keys:
@@ -155,13 +161,17 @@ class ClubFittingComputation:
         self._stage("generic_widgets")
         return lowercase_output_keys(self._state["generic_outputs"][key])
 
-    def compute_all(self):
+    def compute_all(self) -> dict[str, Any]:
+        """Calculate and return every output enabled for this movement."""
         return lowercase_output_keys(
             {key: self.get(key) for key in self.available_keys}
         )
 
 
-def resolve(computation=None, ctx=None):
+def resolve(
+    computation: Optional[ClubFittingComputation] = None, ctx: Any = None
+) -> ClubFittingComputation:
+    """Use a supplied computation or create one from a movement context."""
     if computation is None:
         if ctx is None:
             raise ValueError("Pass ctx or computation=ClubFittingComputation(ctx)")

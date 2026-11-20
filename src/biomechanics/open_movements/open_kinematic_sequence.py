@@ -1,9 +1,12 @@
+from typing import Any
+
 import numpy as np
 from scipy.signal import savgol_filter
 from biomechanics.utils.normalization import safe_normalize
 
 
-def kinematic_sequence(ctx):
+def kinematic_sequence(ctx: Any) -> dict[str, Any]:
+    """Calculate rotational-speed series and heatmap values by body segment."""
     # ctx = self._get_context()
     dt = 1 / ctx.frame_rate
     m = ctx.markers
@@ -20,14 +23,14 @@ def kinematic_sequence(ctx):
     #################################################################### KINEMATIC SEQUENCE ##################################################################
 
     def rotational_velocity_about_spine(
-        proximal,
-        distal,
-        spine_high,
-        spine_low,
-        dt,
-        filter_win,
-        filter_ord=2,
-    ):
+        proximal: np.ndarray,
+        distal: np.ndarray,
+        spine_high: np.ndarray,
+        spine_low: np.ndarray,
+        dt: float,
+        filter_win: int,
+        filter_ord: int = 2,
+    ) -> np.ndarray:
         """
         Computes signed angular velocity (deg/s)
         around instantaneous spine axis.
@@ -114,7 +117,10 @@ def kinematic_sequence(ctx):
     }
 
     # Heat Map Values for Kinematic Sequence
-    def kin_seq_heatmap(kinematic_sequence: dict):
+    def kin_seq_heatmap(
+        kinematic_sequence: dict[str, Any],
+    ) -> dict[str, list[float]]:
+        """Normalize each available rotational-speed series for heatmap use."""
         heatmap_labels = [
             "pelvis_rotational_speed",
             "ut_rotational_speed",

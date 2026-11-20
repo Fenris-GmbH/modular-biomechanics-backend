@@ -1,7 +1,9 @@
 """Helpers for normalizing keys in serialized output dictionaries."""
 
+from typing import Any
 
-def lowercase_output_keys(value):
+
+def lowercase_output_keys(value: Any) -> Any:
     """Return a recursive copy with all string dictionary keys lower-cased.
 
     Raise ``ValueError`` rather than silently discard data if lower-casing

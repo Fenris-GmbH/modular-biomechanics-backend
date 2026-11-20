@@ -1,7 +1,9 @@
+from typing import Any
+
 from .math_helpers import *
 
-def calculate(state):
-    """Compute common stage with cached dependencies."""
+def calculate(state: dict[str, Any]) -> dict[str, Any]:
+    """Compute shared movement classification, context, and common metrics."""
     H = state.get('H')
     I = state.get('I')
     M = state.get('M')

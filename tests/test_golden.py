@@ -215,8 +215,3 @@ def test_modular_applicable_club_methods_match_monolithic_golden(input_path):
     differences = _compare_values(golden_output, modular_output)
 
     _assert_matches_golden(differences, "club fitting")
-
-
-if __name__ == "__main__":
-    input = Path(r"C:\Users\Marco Chow\Documents\GitHub\biomechanics_modular_backend\inputs\kb-dc1-36482-1792133275\kb-dc1-36482-1792133275.json")
-    test_modular_applicable_club_methods_match_monolithic_golden(input)

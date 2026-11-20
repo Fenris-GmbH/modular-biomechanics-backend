@@ -1,8 +1,17 @@
 import logging
 import os
+from typing import Union
 
 
-def setup_logging(logfile="log_summary.log", log_dir="logs"):
+def setup_logging(
+    logfile: str = "log_summary.log",
+    log_dir: Union[str, os.PathLike] = "logs",
+) -> logging.Logger:
+    """Configure console and file handlers for the metrics logger.
+
+    The log directory is created when needed. Existing handlers on the named
+    logger are cleared to prevent duplicate messages across repeated setup.
+    """
     # Ensure log directory exists
     os.makedirs(log_dir, exist_ok=True)
     log_path = os.path.join(log_dir, logfile)

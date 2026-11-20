@@ -1,7 +1,8 @@
 """Standalone output: M2C_club_mechanics."""
+from typing import Any
 from .core import lowercase_output_keys, resolve
 
-def M2C_club_mechanics(ctx=None, *, computation=None):
-    """Return the original one-key response, calculating only needed stages."""
+def M2C_club_mechanics(ctx: Any = None, *, computation: Any = None) -> dict[str, Any]:
+    """Return the M2C_club_mechanics output dictionary for the supplied context or computation."""
     comp = resolve(computation=computation, ctx=ctx)
     return lowercase_output_keys({'M2C_club_mechanics': comp.get('M2C_club_mechanics')})

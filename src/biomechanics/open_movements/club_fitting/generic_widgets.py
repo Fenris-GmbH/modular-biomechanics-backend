@@ -1,6 +1,8 @@
+from typing import Any
+
 from .math_helpers import *
 
-def calculate(state):
+def calculate(state: dict[str, Any]) -> dict[str, Any]:
     """Compute generic_widgets stage with cached dependencies."""
     _WIDGET_EQUIVALENTS = state.get('_WIDGET_EQUIVALENTS')
     _cfg_swing = state.get('_cfg_swing')

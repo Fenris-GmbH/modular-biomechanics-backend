@@ -1,6 +1,8 @@
+from typing import Any
+
 from .math_helpers import *
 
-def calculate(state):
+def calculate(state: dict[str, Any]) -> dict[str, Any]:
     """Compute helpers stage with cached dependencies."""
     COM_p = state.get('COM_p')
     COM_p_acc = state.get('COM_p_acc')

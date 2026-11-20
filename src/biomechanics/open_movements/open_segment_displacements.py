@@ -1,9 +1,12 @@
+from typing import Any
+
 import numpy as np
 from scipy import signal
 from biomechanics.constants import CM_TO_INCH
 
 
-def segment_displacements(ctx):
+def segment_displacements(ctx: Any) -> dict[str, Any]:
+    """Calculate filtered head, upper-trunk, and pelvis displacement series."""
     frame_rate = ctx.frame_rate
     m = ctx.markers
     pelvis = m["pelvis"]
