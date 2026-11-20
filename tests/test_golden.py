@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-INPUT_DIR = PROJECT_ROOT / "tests" / "fixtures" / "golden_inputs"
+INPUT_DIR = PROJECT_ROOT / "tests" / "fixtures" / "golden_inputs_single"
 REF_OUTPUTS_DIR = PROJECT_ROOT / "ref_outputs"
 EXCLUDE_KEYS = ["error_messages"]
 
@@ -104,7 +104,7 @@ def test_modular_force_output_matches_monolithic_golden(input_path):
     assert golden_path.is_file(), f"Missing monolithic golden output: {golden_path}"
 
     input_json = _load_json(input_path)
-    golden_output = _load_json(golden_path)
+    golden_output = _lowercase_keys(_load_json(golden_path))
 
     session = movement(input_json["data_3d_bio"])
     modular_output = {}
@@ -121,6 +121,23 @@ def test_modular_force_output_matches_monolithic_golden(input_path):
 def _load_json(path):
     with path.open(encoding="utf-8") as stream:
         return json.load(stream)
+
+
+def _lowercase_keys(value):
+    """Return a copy with every string key lower-cased recursively."""
+    if isinstance(value, dict):
+        result = {}
+        for key, item in value.items():
+            lowered_key = key.lower() if isinstance(key, str) else key
+            if lowered_key in result:
+                raise ValueError(
+                    f"Reference keys collide after lower-casing: {lowered_key!r}"
+                )
+            result[lowered_key] = _lowercase_keys(item)
+        return result
+    if isinstance(value, list):
+        return [_lowercase_keys(item) for item in value]
+    return value
 
 
 def _assert_matches_golden(differences, label):
@@ -148,14 +165,14 @@ def test_modular_basic_screen_methods_match_monolithic_golden(input_path):
     assert golden_path.is_file(), f"Missing basic screen golden output: {golden_path}"
 
     input_json = _load_json(input_path)
-    golden_output = _load_json(golden_path)
+    golden_output = _lowercase_keys(_load_json(golden_path))
     session = movement(input_json["data_3d_bio"])
 
     modular_output = {
-        "kinematic_sequence": session.calculate_kinematic_sequence(),
-        "com": session.calculate_COM(),
-        "segment_angles": session.calculate_segment_angles(),
-        "segment_displacements": session.calculate_segment_displacements(),
+        **session.calculate_kinematic_sequence(),
+        **session.calculate_COM(),
+        **session.calculate_segment_angles(),
+        **session.calculate_segment_displacements(),
         "time": session.ctx.time.tolist(),
     }
     # error_messages is monolithic diagnostic metadata, not a returned modular
@@ -178,7 +195,7 @@ def test_modular_applicable_club_methods_match_monolithic_golden(input_path):
     assert golden_path.is_file(), f"Missing club fitting golden output: {golden_path}"
 
     input_json = _load_json(input_path)
-    golden_output = _load_json(golden_path)
+    golden_output = _lowercase_keys(_load_json(golden_path))
     session = movement(input_json["data_3d_bio"])
 
     modular_output = session.calculate_movement_type()
@@ -193,3 +210,8 @@ def test_modular_applicable_club_methods_match_monolithic_golden(input_path):
     differences = _compare_values(golden_output, modular_output)
 
     _assert_matches_golden(differences, "club fitting")
+
+
+if __name__ == "__main__":
+    input = Path(r"C:\Users\Marco Chow\Documents\GitHub\biomechanics_modular_backend\inputs\kb-dc1-36482-1792133275\kb-dc1-36482-1792133275.json")
+    test_modular_basic_screen_methods_match_monolithic_golden(input)

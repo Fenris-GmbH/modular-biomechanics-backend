@@ -174,7 +174,7 @@ class movement:
     def calculate_COM(self):
         ctx = self._get_context()
         self.com = com(ctx)
-        return {"full_body": self.com.tolist()}
+        return {"com":{"full_body": self.com.tolist()}}
 
     def calculate_segment_angles(self):
         ctx = self._get_context()
@@ -433,7 +433,10 @@ if __name__ == "__main__":
 
     # comparisons
     all_passed(session_basic_time, ref_bs_output)
-    all_passed(session_kin_seq, ref_bs_output["kinematic_sequence"])
+    all_passed(
+        session_kin_seq,
+        {"kinematic_sequence": ref_bs_output["kinematic_sequence"]},
+    )
     all_passed(session_com, ref_bs_output["com"])
     all_passed(session_segment_angles, ref_bs_output["segment_angles"])
     all_passed(session_segment_displacements, ref_bs_output["segment_displacements"])

@@ -105,10 +105,10 @@ def kinematic_sequence(ctx):
     zero_array = np.array([0, 0])
 
     kinematic_sequence = {
-        "Pelvis_Rotational_Speed": pelvis_rot_speed.tolist(),
-        "Ut_Rotational_Speed": UT_rot_speed.tolist(),
-        "Lead_Arm_Rotational_Speed": arm_rot_speed.tolist(),
-        "Lead_Hand_Rotational_Speed": hand_rot_speed.tolist(),
+        "pelvis_rotational_speed": pelvis_rot_speed.tolist(),
+        "ut_rotational_speed": UT_rot_speed.tolist(),
+        "lead_arm_rotational_speed": arm_rot_speed.tolist(),
+        "lead_hand_rotational_speed": hand_rot_speed.tolist(),
         "trail_arm_rot_speed": trail_arm_rot_speed.tolist(),
         "trail_hand_rot_speed": trail_hand_rot_speed.tolist(),
     }
@@ -116,11 +116,11 @@ def kinematic_sequence(ctx):
     # Heat Map Values for Kinematic Sequence
     def kin_seq_heatmap(kinematic_sequence: dict):
         heatmap_labels = [
-            "Pelvis_Rotational_Speed",
-            "Ut_Rotational_Speed",
-            "Lead_Arm_Rotational_Speed",
-            "Lead_Hand_Rotational_Speed",
-            "Club_Rotational_Speed",
+            "pelvis_rotational_speed",
+            "ut_rotational_speed",
+            "lead_arm_rotational_speed",
+            "lead_hand_rotational_speed",
+            "club_rotational_speed",
             "trail_arm_rot_speed",
             "trail_hand_rot_speed",
         ]
@@ -154,4 +154,4 @@ def kinematic_sequence(ctx):
         kinematic_sequence,
     )
     kinematic_sequence.update(kinematic_sequence_hm_dict)
-    return kinematic_sequence
+    return {"kinematic_sequence": kinematic_sequence}

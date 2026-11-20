@@ -500,9 +500,9 @@ def segment_angles(ctx, COM):
         "head_turn_deg": head_turn_deg_end.tolist(),
         "head_tilt_deg": head_tilt_deg.tolist(),
         "head_bend_deg": head_bend_deg.tolist(),
-        "UT_turn_deg": UT_turn_deg_end.tolist(),
-        "UT_tilt_deg": UT_tilt_deg.tolist(),
-        "UT_bend_deg": UT_bend_deg.tolist(),
+        "ut_turn_deg": UT_turn_deg_end.tolist(),
+        "ut_tilt_deg": UT_tilt_deg.tolist(),
+        "ut_bend_deg": UT_bend_deg.tolist(),
         "pelvis_turn_deg": pelvis_turn_deg_end.tolist(),
         "pelvis_tilt_deg": pelvis_tilt_deg.tolist(),
         "pelvis_bend_deg": pelvis_bend_deg.tolist(),
@@ -512,10 +512,10 @@ def segment_angles(ctx, COM):
         "elbow_angle_l_deg": elbow_angle_l_deg.tolist(),
         "weight_perc": weight_perc.tolist(),
         "hand_speed_mph": hand_speed_mph.tolist(),
-        "index_MAX_hand_speed_mph": index_MAX_hand_speed_mph,
-        "x_factor": x_factor.tolist(),  # 26.09.2024: Adding the x factor metrics to the basic screen
+        "index_max_hand_speed_mph": index_MAX_hand_speed_mph,
+        "x_factor": x_factor.tolist(),  # Adding the x factor metrics to the basic screen
         "x_factor_min": x_factor_min,
         "x_factor_min_idx": x_factor_min_idx,
     }
 
-    return segment_angles
+    return {"segment_angles":segment_angles}
