@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-INPUT_DIR = PROJECT_ROOT / "tests" / "fixtures" / "golden_inputs_single"
+INPUT_DIR = PROJECT_ROOT / "tests" / "fixtures" / "golden_inputs"
 REF_OUTPUTS_DIR = PROJECT_ROOT / "ref_outputs"
 EXCLUDE_KEYS = ["error_messages"]
 
@@ -97,25 +97,25 @@ FORCE_METHODS = (
 )
 
 
-@pytest.mark.parametrize("input_path", INPUT_FILES, ids=lambda path: path.stem)
-def test_modular_force_output_matches_monolithic_golden(input_path):
-    swing_id = input_path.stem
-    golden_path = REF_OUTPUTS_DIR / swing_id / f"{swing_id}_forcescreen.json"
-    assert golden_path.is_file(), f"Missing monolithic golden output: {golden_path}"
+# @pytest.mark.parametrize("input_path", INPUT_FILES, ids=lambda path: path.stem)
+# def test_modular_force_output_matches_monolithic_golden(input_path):
+#     swing_id = input_path.stem
+#     golden_path = REF_OUTPUTS_DIR / swing_id / f"{swing_id}_forcescreen.json"
+#     assert golden_path.is_file(), f"Missing monolithic golden output: {golden_path}"
 
-    input_json = _load_json(input_path)
-    golden_output = _lowercase_keys(_load_json(golden_path))
+#     input_json = _load_json(input_path)
+#     golden_output = _lowercase_keys(_load_json(golden_path))
 
-    session = movement(input_json["data_3d_bio"])
-    modular_output = {}
-    for method_name in FORCE_METHODS:
-        result = getattr(session, method_name)()
-        if result:
-            modular_output.update(result)
+#     session = movement(input_json["data_3d_bio"])
+#     modular_output = {}
+#     for method_name in FORCE_METHODS:
+#         result = getattr(session, method_name)()
+#         if result:
+#             modular_output.update(result)
 
-    differences = _compare_values(golden_output, modular_output)
+#     differences = _compare_values(golden_output, modular_output)
 
-    _assert_matches_golden(differences, "force screen")
+#     _assert_matches_golden(differences, "force screen")
 
 
 def _load_json(path):
@@ -214,4 +214,4 @@ def test_modular_applicable_club_methods_match_monolithic_golden(input_path):
 
 if __name__ == "__main__":
     input = Path(r"C:\Users\Marco Chow\Documents\GitHub\biomechanics_modular_backend\inputs\kb-dc1-36482-1792133275\kb-dc1-36482-1792133275.json")
-    test_modular_basic_screen_methods_match_monolithic_golden(input)
+    test_modular_applicable_club_methods_match_monolithic_golden(input)

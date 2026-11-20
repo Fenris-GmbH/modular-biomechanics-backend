@@ -49,6 +49,25 @@ GENERIC_WIDGET_KEYS = (
     "M2C_wrist",
 )
 
+
+def lowercase_output_keys(value):
+    """Lowercase string keys recursively in a returned output value."""
+    if isinstance(value, dict):
+        lowered = {}
+        for key, item in value.items():
+            lowered_key = key.lower() if isinstance(key, str) else key
+            if lowered_key in lowered:
+                raise ValueError(
+                    f"Output keys collide after lower-casing: {lowered_key!r}"
+                )
+            lowered[lowered_key] = lowercase_output_keys(item)
+        return lowered
+    if isinstance(value, list):
+        return [lowercase_output_keys(item) for item in value]
+    if isinstance(value, tuple):
+        return tuple(lowercase_output_keys(item) for item in value)
+    return value
+
 MODULES = {
     "common": common,
     "hitting": hitting,
@@ -127,13 +146,13 @@ class ClubFittingComputation:
             )
         if key == "M2C_skeleton_3d":
             self._stage("skeleton")
-            return self._state[key]
+            return lowercase_output_keys(self._state[key])
         if key == "generic":
             self._stage("generic_metrics")
-            return self._state[key]
+            return lowercase_output_keys(self._state[key])
         if self.movement_type == "hitting":
             self._stage("hitting")
-            return (
+            return lowercase_output_keys(
                 self._state["M2C_force_vectors_shaft_3d"]
                 if key == "M2C_force_vectors_bat_3d"
                 else self._state[key]
@@ -141,20 +160,22 @@ class ClubFittingComputation:
         if self.movement_type == "pitching":
             if key in ("Performance_metrics", "M2C_force_vectors_hand_r_3d"):
                 self._stage("pitcher_metrics")
-                return self._state[
+                return lowercase_output_keys(self._state[
                     (
                         "Pitcher_performance_metrics"
                         if key == "Performance_metrics"
                         else "M2C_force_vectors_hand_3d"
                     )
-                ]
+                ])
             self._stage("generic_widgets")
-            return self._state["pitcher_outputs"][key]
+            return lowercase_output_keys(self._state["pitcher_outputs"][key])
         self._stage("generic_widgets")
-        return self._state["generic_outputs"][key]
+        return lowercase_output_keys(self._state["generic_outputs"][key])
 
     def compute_all(self):
-        return {key: self.get(key) for key in self.available_keys}
+        return lowercase_output_keys(
+            {key: self.get(key) for key in self.available_keys}
+        )
 
 
 def resolve(computation=None, ctx=None):

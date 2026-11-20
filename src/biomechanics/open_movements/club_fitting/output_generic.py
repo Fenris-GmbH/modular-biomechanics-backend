@@ -1,7 +1,7 @@
 """Standalone output: generic."""
-from .core import resolve
+from .core import lowercase_output_keys, resolve
 
 def generic(ctx=None, *, computation=None):
     """Return the original one-key response, calculating only needed stages."""
     comp = resolve(computation=computation, ctx=ctx)
-    return {'generic': comp.get('generic')}
+    return lowercase_output_keys({'generic': comp.get('generic')})

@@ -1,7 +1,7 @@
 """Standalone output: inPlaneMetrics."""
-from .core import resolve
+from .core import lowercase_output_keys, resolve
 
 def inPlaneMetrics(ctx=None, *, computation=None):
     """Return the original one-key response, calculating only needed stages."""
     comp = resolve(computation=computation, ctx=ctx)
-    return {'inPlaneMetrics': comp.get('inPlaneMetrics')}
+    return lowercase_output_keys({'inPlaneMetrics': comp.get('inPlaneMetrics')})
