@@ -121,15 +121,15 @@ CLUB_FITTING_METHODS = {
     "M2C_wrist": "calculate_M2C_wrist",
     "M2C_force_vectors_hand_r_3d": "calculate_M2C_force_vectors_hand_r_3d",
     "M2C_force_vectors_bat_3d": "calculate_M2C_force_vectors_bat_3d",
-    "M2C_skeleton_3d": "calculate_M2C_skeleton_3d",
+    # "M2C_skeleton_3d": "calculate_M2C_skeleton_3d",
     "pitcher_metric_equivalents": "calculate_pitcher_metric_equivalents",
     "inPlaneMetrics": "calculate_inPlaneMetrics",
     "outOfPlaneMetrics": "calculate_outOfPlaneMetrics",
     "M2C_inplane_vectors": "calculate_M2C_inplane_vectors",
     "M2C_inplane_vectors_3d": "calculate_M2C_inplane_vectors_3d",
     "M2C_kinetics_3d": "calculate_M2C_kinetics_3d",
-    "generic": "calculate_generic",
-    "generic_metric_equivalents": "calculate_generic_metric_equivalents",
+    # "generic": "calculate_generic",
+    # "generic_metric_equivalents": "calculate_generic_metric_equivalents",
     "M2C_other_side_error": "calculate_M2C_other_side_error",
     "generic_widgets_error": "calculate_generic_widgets_error",
     "M2C_power_left": "calculate_M2C_power_left",
@@ -148,8 +148,8 @@ COMMON_KEYS = {
     "M2C_club_mechanics",
     "M2C_club_mechanics_highlights",
     "M2C_wrist",
-    "M2C_skeleton_3d",
-    "generic",
+    # "M2C_skeleton_3d",
+    # "generic",
 }
 
 HITTING_KEYS = COMMON_KEYS | {
@@ -171,7 +171,7 @@ PITCHING_KEYS = COMMON_KEYS | {
 }
 
 GENERIC_KEYS = COMMON_KEYS | {
-    "generic_metric_equivalents",
+    # "generic_metric_equivalents",
     "M2C_other_side_error",
     "generic_widgets_error",
     "M2C_power_left",

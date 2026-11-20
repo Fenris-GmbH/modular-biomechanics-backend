@@ -1,6 +1,7 @@
 import copy
 import numpy as np
 from dataclasses import dataclass
+from biomechanics.utils.output_keys import lowercase_output_keys
 from biomechanics.open_movements.open_kinematic_sequence import kinematic_sequence
 from biomechanics.open_movements.open_segment_angles import segment_angles
 from biomechanics.open_movements.open_com import com
@@ -34,15 +35,15 @@ from biomechanics.open_movements.club_fitting import (
     M2C_wrist,
     M2C_force_vectors_hand_r_3d,
     M2C_force_vectors_bat_3d,
-    M2C_skeleton_3d,
+    # M2C_skeleton_3d,
     pitcher_metric_equivalents,
     inPlaneMetrics,
     outOfPlaneMetrics,
     M2C_inplane_vectors,
     M2C_inplane_vectors_3d,
     M2C_kinetics_3d,
-    generic,
-    generic_metric_equivalents,
+    # generic,
+    # generic_metric_equivalents,
     M2C_other_side_error,
     generic_widgets_error,
     M2C_power_left,
@@ -241,26 +242,28 @@ class movement:
     def calculate_all_forces(self):
         computation = self._get_force_computation()
 
-        return {
-            key: value
-            for key in (
-                "force_vectors",
-                "weight_shift",
-                "forces",
-                "time",
-                "force_vectors_3d",
-                "values_for_COP_trajectory",
-                "COM_MODELS",
-                "power",
-                "energy",
-                "impulse",
-                "small_force_vectors",
-                "COM_COP_traj_back_view",
-                "critical_events",
-                "frame_offset",
-            )
-            if (value := computation.get(key)) is not None
-        }
+        return lowercase_output_keys(
+            {
+                key: value
+                for key in (
+                    "force_vectors",
+                    "weight_shift",
+                    "forces",
+                    "time",
+                    "force_vectors_3d",
+                    "values_for_COP_trajectory",
+                    "COM_MODELS",
+                    "power",
+                    "energy",
+                    "impulse",
+                    "small_force_vectors",
+                    "COM_COP_traj_back_view",
+                    "critical_events",
+                    "frame_offset",
+                )
+                if (value := computation.get(key)) is not None
+            }
+        )
 
     def _get_club_fitting(self):
         if self.club_fitting is None:
@@ -294,8 +297,8 @@ class movement:
     def calculate_M2C_force_vectors_bat_3d(self):
         return M2C_force_vectors_bat_3d(computation=self._get_club_fitting())
 
-    def calculate_M2C_skeleton_3d(self):
-        return M2C_skeleton_3d(computation=self._get_club_fitting())
+    # def calculate_M2C_skeleton_3d(self):
+    #     return M2C_skeleton_3d(computation=self._get_club_fitting())
 
     def calculate_pitcher_metric_equivalents(self):
         return pitcher_metric_equivalents(computation=self._get_club_fitting())
@@ -315,11 +318,11 @@ class movement:
     def calculate_M2C_kinetics_3d(self):
         return M2C_kinetics_3d(computation=self._get_club_fitting())
 
-    def calculate_generic(self):
-        return generic(computation=self._get_club_fitting())
+    # def calculate_generic(self):
+    #     return generic(computation=self._get_club_fitting())
 
-    def calculate_generic_metric_equivalents(self):
-        return generic_metric_equivalents(computation=self._get_club_fitting())
+    # def calculate_generic_metric_equivalents(self):
+    #     return generic_metric_equivalents(computation=self._get_club_fitting())
 
     def calculate_M2C_other_side_error(self):
         return M2C_other_side_error(computation=self._get_club_fitting())
@@ -375,8 +378,8 @@ if __name__ == "__main__":
 
     #swing_id = "m2c-dc1-690-1786440469_pitching"
     # swing_id = "m2c-dc1-690-1786440415-hitting"
-    swing_id = "kb-dc1-36482-1792133275"
-    #swing_id = "m2c-dc1-11064-1780909756-golf-lh"
+    #swing_id = "kb-dc1-36482-1792133275"
+    swing_id = "m2c-dc1-11064-1780909756-golf-lh"
     # swing_id = "m2c-dc1-690-1786439971_jump"
     # swing_id = "kb-dc1-36482-1792132984-hitting"
 
@@ -409,20 +412,20 @@ if __name__ == "__main__":
 
     session_basic_time = session.get_basic_time()
 
-    session_kin_seq = session.calculate_kinematic_sequence()
-    save_jsons(swing_id, "kinematic_sequence", session_kin_seq)
+    # session_kin_seq = session.calculate_kinematic_sequence()
+    # save_jsons(swing_id, "kinematic_sequence", session_kin_seq)
 
-    session_com = session.calculate_COM()
-    save_jsons(swing_id, "com", session_com)
+    # session_com = session.calculate_COM()
+    # save_jsons(swing_id, "com", session_com)
 
-    session_segment_angles = session.calculate_segment_angles()
-    save_jsons(swing_id, "segment_angles", session_segment_angles)
+    # session_segment_angles = session.calculate_segment_angles()
+    # save_jsons(swing_id, "segment_angles", session_segment_angles)
 
-    session_segment_displacements = session.calculate_segment_displacements()
-    save_jsons(swing_id, "segment_displacements", session_segment_displacements)
+    # session_segment_displacements = session.calculate_segment_displacements()
+    # save_jsons(swing_id, "segment_displacements", session_segment_displacements)
 
     # forces
-    # session_all_forces = session.calculate_all_forces()
+    session_all_forces = session.calculate_all_forces()
     # for force_key in session_all_forces.keys():
     #     save_jsons(swing_id, force_key, {force_key:session_all_forces[force_key]})
 

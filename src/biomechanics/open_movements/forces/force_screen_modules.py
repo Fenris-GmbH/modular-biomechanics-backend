@@ -32,6 +32,7 @@ import math
 import os
 
 import numpy as np
+from biomechanics.utils.output_keys import lowercase_output_keys
 
 try:
     from biomechanics.open_movements.forces.force_vectors_v13_forces_screen_contactgate_lefthanded_handling import (
@@ -1742,10 +1743,10 @@ class ForcesScreen:
             return 0
         if key == "critical_events":  # echo of the input events; no force computation
             pos = self.fv.extract_positions(self.json3d)
-            return {
+            return lowercase_output_keys({
                 k: (v + 0 if isinstance(v, (int, float)) else v)
                 for k, v in (pos if isinstance(pos, dict) else {}).items()
-            }
+            })
         if key in ("weight_shift", "COM_MODELS") and self.pose2d is None:
             logging.warning(
                 "%s needs pose2d (2D pixel markers); not produced without it.", key
@@ -1755,7 +1756,7 @@ class ForcesScreen:
         val = self._S[key]
         if key == "time":
             val = val.tolist()
-        return None if val is None else self.fv._json_safe(val)
+        return None if val is None else lowercase_output_keys(self.fv._json_safe(val))
 
 
 def _produce(key, json3d, pose2d, computation, output_dir, name_prefix, overrides):
@@ -1766,7 +1767,7 @@ def _produce(key, json3d, pose2d, computation, output_dir, name_prefix, override
     val = computation.get(key)
     if val is None:
         return {}
-    result = {key: val}
+    result = lowercase_output_keys({key: val})
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)
         with open(os.path.join(output_dir, f"{name_prefix}{key}.json"), "w") as fh:
@@ -1819,14 +1820,14 @@ def resolved_configuration(json3d, **overrides):
     }
 
 
-if __name__ == "__main__":
-    import sys
+# if __name__ == "__main__":
+#     import sys
 
-    if len(sys.argv) < 3:
-        print(
-            "usage: python force_screen_modules.py <pose_3d.json> <out_dir> [pose_2d.json]"
-        )
-        sys.exit(0)
-    j3 = json.load(open(sys.argv[1]))
-    j2 = json.load(open(sys.argv[3])) if len(sys.argv) > 3 else None
-    compute_all(j3, j2, output_dir=sys.argv[2])
+#     if len(sys.argv) < 3:
+#         print(
+#             "usage: python force_screen_modules.py <pose_3d.json> <out_dir> [pose_2d.json]"
+#         )
+#         sys.exit(0)
+#     j3 = json.load(open(sys.argv[1]))
+#     j2 = json.load(open(sys.argv[3])) if len(sys.argv) > 3 else None
+#     compute_all(j3, j2, output_dir=sys.argv[2])

@@ -1,6 +1,7 @@
 """Shared state and dependency scheduler for standalone club-fitting outputs."""
 
 from copy import deepcopy
+from biomechanics.utils.output_keys import lowercase_output_keys
 from . import (
     common,
     hitting,
@@ -26,8 +27,8 @@ KEYS_HITTING = (
     "M2C_inplane_vectors",
     "M2C_inplane_vectors_3d",
     "M2C_kinetics_3d",
-    "M2C_skeleton_3d",
-    "generic",
+    # "M2C_skeleton_3d",
+    # "generic",
 )
 KEYS_PITCHING = (
     "movement_type",
@@ -38,9 +39,9 @@ KEYS_PITCHING = (
     "M2C_club_mechanics_highlights",
     "M2C_wrist",
     "M2C_force_vectors_hand_r_3d",
-    "M2C_skeleton_3d",
+    # "M2C_skeleton_3d",
     "pitcher_metric_equivalents",
-    "generic",
+    # "generic",
 )
 GENERIC_WIDGET_KEYS = (
     "M2C_power",
@@ -49,24 +50,6 @@ GENERIC_WIDGET_KEYS = (
     "M2C_wrist",
 )
 
-
-def lowercase_output_keys(value):
-    """Lowercase string keys recursively in a returned output value."""
-    if isinstance(value, dict):
-        lowered = {}
-        for key, item in value.items():
-            lowered_key = key.lower() if isinstance(key, str) else key
-            if lowered_key in lowered:
-                raise ValueError(
-                    f"Output keys collide after lower-casing: {lowered_key!r}"
-                )
-            lowered[lowered_key] = lowercase_output_keys(item)
-        return lowered
-    if isinstance(value, list):
-        return [lowercase_output_keys(item) for item in value]
-    if isinstance(value, tuple):
-        return tuple(lowercase_output_keys(item) for item in value)
-    return value
 
 MODULES = {
     "common": common,
@@ -114,8 +97,8 @@ class ClubFittingComputation:
             "movement_type",
             *GENERIC_WIDGET_KEYS,
             *extra,
-            "generic",
-            "M2C_skeleton_3d",
+            # "generic",
+            # "M2C_skeleton_3d",
         )
 
     def _stage(self, name):
