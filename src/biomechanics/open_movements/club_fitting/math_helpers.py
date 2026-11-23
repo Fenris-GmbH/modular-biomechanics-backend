@@ -1,6 +1,5 @@
 import numpy as np
 import math
-import json
 from scipy import signal
 from scipy.linalg import svd
 from scipy.signal import savgol_filter

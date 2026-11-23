@@ -105,8 +105,6 @@ def kinematic_sequence(ctx: Any) -> dict[str, Any]:
 
     ########################################  Bat SPEED ###################################################################
 
-    zero_array = np.array([0, 0])
-
     kinematic_sequence = {
         "pelvis_rotational_speed": pelvis_rot_speed.tolist(),
         "ut_rotational_speed": UT_rot_speed.tolist(),

@@ -1,5 +1,4 @@
 from typing import Any
-
 from .math_helpers import *
 
 def calculate(state: dict[str, Any]) -> dict[str, Any]:

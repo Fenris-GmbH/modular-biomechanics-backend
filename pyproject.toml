@@ -14,3 +14,12 @@ dependencies = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["F"]
+
+[tool.ruff.format]
+quote-style = "double"

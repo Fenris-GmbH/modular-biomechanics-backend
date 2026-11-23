@@ -3,10 +3,11 @@ from typing import Any
 import numpy as np
 from dataclasses import dataclass
 from biomechanics.utils.output_keys import lowercase_output_keys
-from biomechanics.open_movements.open_kinematic_sequence import kinematic_sequence
-from biomechanics.open_movements.open_segment_angles import segment_angles
-from biomechanics.open_movements.open_com import com
-from biomechanics.open_movements.open_segment_displacements import segment_displacements
+from biomechanics.open_movements.basic import (
+    kinematic_sequence,
+    segment_displacements,
+    segment_angles,
+    com)
 from biomechanics.open_movements.forces.force_screen_modules import (
     ForcesScreen,
     force_vectors,
@@ -36,15 +37,12 @@ from biomechanics.open_movements.club_fitting import (
     M2C_wrist,
     M2C_force_vectors_hand_r_3d,
     M2C_force_vectors_bat_3d,
-    # M2C_skeleton_3d,
     pitcher_metric_equivalents,
     inPlaneMetrics,
     outOfPlaneMetrics,
     M2C_inplane_vectors,
     M2C_inplane_vectors_3d,
     M2C_kinetics_3d,
-    # generic,
-    # generic_metric_equivalents,
     M2C_other_side_error,
     generic_widgets_error,
     M2C_power_left,
@@ -200,24 +198,25 @@ class movement:
         ctx = self._get_context()
         return segment_displacements(ctx)
 
-    def _get_force_computation(self) -> ForcesScreen:
+    def _get_force_computation(self,pose2d=None) -> ForcesScreen:
         """Create or return the cached force-screen computation."""
         if self.force_computation is None:
             ctx = self._get_context()
             self.force_computation = ForcesScreen(
-                ctx.raw_json_3d,
+                json3d=ctx.raw_json_3d,
+                pose2d=pose2d,
                 body_mass=ctx.weight,
                 frame_rate=ctx.frame_rate,
             )
         return self.force_computation
 
-    def calculate_force_vectors(self) -> dict[str, Any]:
+    def calculate_force_vectors(self,pose2d=None) -> dict[str, Any]:
         """Return the dictionary produced by the calculate_force_vectors calculation."""
-        return force_vectors(computation=self._get_force_computation())
+        return force_vectors(computation=self._get_force_computation(pose2d=pose2d))
 
-    def calculate_weight_shift(self) -> dict[str, Any]:
+    def calculate_weight_shift(self,pose2d=None) -> dict[str, Any]:
         """Return the dictionary produced by the calculate_weight_shift calculation."""
-        return weight_shift(computation=self._get_force_computation())
+        return weight_shift(computation=self._get_force_computation(pose2d=pose2d))
 
     def calculate_forces(self) -> dict[str, Any]:
         """Return the dictionary produced by the calculate_forces calculation."""
@@ -235,9 +234,9 @@ class movement:
         """Return the dictionary produced by the calculate_values_for_COP_trajectory calculation."""
         return values_for_COP_trajectory(computation=self._get_force_computation())
 
-    def calculate_COM_MODELS(self) -> dict[str, Any]:
+    def calculate_COM_MODELS(self,pose2d=None) -> dict[str, Any]:
         """Return the dictionary produced by the calculate_COM_MODELS calculation."""
-        return COM_MODELS(computation=self._get_force_computation())
+        return COM_MODELS(computation=self._get_force_computation(pose2d=pose2d))
 
     def calculate_power(self) -> dict[str, Any]:
         """Return the dictionary produced by the calculate_power calculation."""
@@ -336,9 +335,6 @@ class movement:
         """Return the dictionary produced by the calculate_M2C_force_vectors_bat_3d calculation."""
         return M2C_force_vectors_bat_3d(computation=self._get_club_fitting())
 
-    # def calculate_M2C_skeleton_3d(self):
-    #     return M2C_skeleton_3d(computation=self._get_club_fitting())
-
     def calculate_pitcher_metric_equivalents(self) -> dict[str, Any]:
         """Return the dictionary produced by the calculate_pitcher_metric_equivalents calculation."""
         return pitcher_metric_equivalents(computation=self._get_club_fitting())
@@ -362,12 +358,6 @@ class movement:
     def calculate_M2C_kinetics_3d(self) -> dict[str, Any]:
         """Return the dictionary produced by the calculate_M2C_kinetics_3d calculation."""
         return M2C_kinetics_3d(computation=self._get_club_fitting())
-
-    # def calculate_generic(self):
-    #     return generic(computation=self._get_club_fitting())
-
-    # def calculate_generic_metric_equivalents(self):
-    #     return generic_metric_equivalents(computation=self._get_club_fitting())
 
     def calculate_M2C_other_side_error(self) -> dict[str, Any]:
         """Return the dictionary produced by the calculate_M2C_other_side_error calculation."""
@@ -417,46 +407,13 @@ class movement:
 if __name__ == "__main__":
     from pathlib import Path
     import json
-    from biomechanics.utils.test_helpers import (
-        all_passed,
-        numpy_int_parser,
-    )
+    from biomechanics.utils.path_utils import get_project_root
 
-    PROJECT_ROOT = Path(__file__).resolve().parents[2]
+    PROJECT_ROOT = get_project_root()
     inputs_folder = PROJECT_ROOT / "inputs"
     OUTPUT_DIR = PROJECT_ROOT / "outputs"
 
-    def save_jsons(swing_id: str, metric: str, values: Any) -> None:
-        """Write one metric result as formatted JSON beneath the output folder."""
-        output_path = OUTPUT_DIR / swing_id
-        output_path.mkdir(parents=True, exist_ok=True)
-        with open(output_path / f"{swing_id}_{metric}.json", "w") as f:
-            json.dump(values, f, indent=4, default=numpy_int_parser)
-
-    #swing_id = "m2c-dc1-690-1786440469_pitching"
-    # swing_id = "m2c-dc1-690-1786440415-hitting"
-    #swing_id = "kb-dc1-36482-1792133275"
-    swing_id = "m2c-dc1-11064-1780909756-golf-lh"
-    # swing_id = "m2c-dc1-690-1786439971_jump"
-    # swing_id = "kb-dc1-36482-1792132984-hitting"
-
-    # ref output
-    ref_bs_output = json.load(
-        open(
-            rf"C:\Users\Marco Chow\Documents\GitHub\biomechanics_modular_backend\ref_outputs\{swing_id}\{swing_id}_basicscreen.json"
-        )
-    )
-    ref_fs_output = json.load(
-        open(
-            rf"C:\Users\Marco Chow\Documents\GitHub\biomechanics_modular_backend\ref_outputs\{swing_id}\{swing_id}_forcescreen.json"
-        )
-    )
-
-    ref_cf_output = json.load(
-        open(
-            rf"C:\Users\Marco Chow\Documents\GitHub\biomechanics_modular_backend\ref_outputs\{swing_id}\{swing_id}_clubfitting.json"
-        )
-    )
+    swing_id = "m2c-dc1-307-1740337577-golf-rh"
 
     # Objects
     input_json = Path(inputs_folder / swing_id / f"{swing_id}.json")
@@ -464,45 +421,20 @@ if __name__ == "__main__":
         json3d = json.load(f)
 
     # basic screen
-
     session = movement(json3d["data_3d_bio"])
 
     session_basic_time = session.get_basic_time()
 
-    # session_kin_seq = session.calculate_kinematic_sequence()
-    # save_jsons(swing_id, "kinematic_sequence", session_kin_seq)
+    session_kin_seq = session.calculate_kinematic_sequence()
 
-    # session_com = session.calculate_COM()
-    # save_jsons(swing_id, "com", session_com)
+    session_com = session.calculate_COM()
 
-    # session_segment_angles = session.calculate_segment_angles()
-    # save_jsons(swing_id, "segment_angles", session_segment_angles)
+    session_segment_angles = session.calculate_segment_angles()
 
-    # session_segment_displacements = session.calculate_segment_displacements()
-    # save_jsons(swing_id, "segment_displacements", session_segment_displacements)
+    session_segment_displacements = session.calculate_segment_displacements()
 
     # forces
     session_all_forces = session.calculate_all_forces()
-    # for force_key in session_all_forces.keys():
-    #     save_jsons(swing_id, force_key, {force_key:session_all_forces[force_key]})
 
     # clubfitting
-    # session_all_club = session.calculate_all_club_fitting()
-    # for club_key in session_all_club.keys():
-    #     save_jsons(swing_id, club_key, {club_key: session_all_club[club_key]})
-
-    # # comparisons
-    # all_passed(session_basic_time, ref_bs_output)
-    # all_passed(
-    #     session_kin_seq,
-    #     {"kinematic_sequence": ref_bs_output["kinematic_sequence"]},
-    # )
-    # all_passed(session_com, ref_bs_output["com"])
-    # all_passed(session_segment_angles, ref_bs_output["segment_angles"])
-    # all_passed(session_segment_displacements, ref_bs_output["segment_displacements"])
-    # all_passed(session_all_forces, ref_fs_output)
-    # all_passed(session_all_club, ref_cf_output)
-
-    # # Checking keys
-    # assert set(session_all_club.keys()) == (set(ref_cf_output.keys()))
-    # assert set(session_all_forces.keys()) == (set(ref_fs_output.keys()))
+    session_all_club = session.calculate_all_club_fitting()

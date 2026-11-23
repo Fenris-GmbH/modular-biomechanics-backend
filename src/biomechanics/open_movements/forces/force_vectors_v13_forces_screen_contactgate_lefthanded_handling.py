@@ -1788,20 +1788,20 @@ class ForceVectors:
                 M_left = np.cross(rL, FL)
                 M_right = np.cross(rR, FR)
 
-                Mx_from_Fx = (
-                    np.cross(rL, [FL[0], 0, 0]) +
-                    np.cross(rR, [FR[0], 0, 0])
-                )
+                # Mx_from_Fx = (
+                #     np.cross(rL, [FL[0], 0, 0]) +
+                #     np.cross(rR, [FR[0], 0, 0])
+                # )
 
-                Mx_from_Fy = (
-                    np.cross(rL, [0, FL[1], 0]) +
-                    np.cross(rR, [0, FR[1], 0])
-                )
+                # Mx_from_Fy = (
+                #     np.cross(rL, [0, FL[1], 0]) +
+                #     np.cross(rR, [0, FR[1], 0])
+                # )
 
-                Mx_from_Fz = (
-                    np.cross(rL, [0, 0, FL[2]]) +
-                    np.cross(rR, [0, 0, FR[2]])
-                )
+                # Mx_from_Fz = (
+                #     np.cross(rL, [0, 0, FL[2]]) +
+                #     np.cross(rR, [0, 0, FR[2]])
+                # )
 
                 moment_pred = M_left + M_right
 
@@ -1898,11 +1898,6 @@ class ForceVectors:
 
             GRF_left[i] = FL
             GRF_right[i] = FR
-
-            err = np.linalg.norm(GRF_left[i] + GRF_right[i] - F)
-
-
-        
 
             previous_left = FL.copy()
 
@@ -2141,28 +2136,6 @@ class ForceVectors:
             contact_conf_l=contact_conf_l,
             contact_conf_r=contact_conf_r,
         )
-
-        force_error = np.max(
-            np.linalg.norm(
-                GRF_left + GRF_right - total_force,
-                axis=1,
-            )
-        )
-
-        moment_pred = (
-            np.cross(
-                segment_COMs["foot_l"] - body_COM,
-                GRF_left
-            )
-            +
-            np.cross(
-                segment_COMs["foot_r"] - body_COM,
-                GRF_right
-            )
-        )
-
-        moment_error = moment_pred - total_moment
-
 
         # optimizer temporarily disabled for baseline check
 
@@ -2888,7 +2861,6 @@ class ForceVectors:
 
         # ---- small (frontend side-panel) force vectors; independent of pose2d
         sh_, sw_ = 75.0, 223.0
-        kh_s = sh_ / lay["plate_h"]
         kw_s = sw_ / lay["plate_w"]
         base_y = int(sh_ - 30)
         sx = lambda c: (c[:, 0] + xo) * kw_s + 14.5

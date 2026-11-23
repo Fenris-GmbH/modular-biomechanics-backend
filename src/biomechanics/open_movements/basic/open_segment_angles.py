@@ -24,13 +24,9 @@ def segment_angles(ctx: Any, COM: np.ndarray) -> dict[str, Any]:
     hip_l = m["hip_l"]
     knee_l = m["knee_l"]
     ankle_l = m["ankle_l"]
-    foot_l = m["foot_l"]
-    midfoot_l = m["midfoot_l"]
     hip_r = m["hip_r"]
     knee_r = m["knee_r"]
     ankle_r = m["ankle_r"]
-    foot_r = m["foot_r"]
-    midfoot_r = m["midfoot_r"]
     nose = m["nose"]
     spine_low = m["spine_low"]
     spine_high = m["spine_high"]
@@ -42,11 +38,8 @@ def segment_angles(ctx: Any, COM: np.ndarray) -> dict[str, Any]:
     elbow_r = m["elbow_r"]
     wrist_r = m["wrist_r"]
     hand_r = m["hand_r"]
-    neck = m["neck"]
     skullbase = m["skullbase"]
     skull = m["skull"]
-    club_main = m["club_main"]
-    club_head = m["club_head"]
     ear_l = m["ear_l"]
     ear_r = m["ear_r"]
     #######################################################  HAND PATH (cm) ######################################################################
@@ -447,13 +440,6 @@ def segment_angles(ctx: Any, COM: np.ndarray) -> dict[str, Any]:
             )
         )
     F_hand = np.array(F_hand)
-
-    # Signed instantaneous power (dot product of force and velocity vectors)
-    hand_power = (
-        Fx_t_est_hand * hand_l_speed_x
-        + Fy_t_est_hand * hand_l_speed_y
-        + Fz_t_est_hand * hand_l_speed_z
-    )
 
     # index_MAX_hand_power = np.argmax(hand_power[p4 : p7 + 1]) + p4
     ##################### Compute maximum hand speed in mph ###############################
