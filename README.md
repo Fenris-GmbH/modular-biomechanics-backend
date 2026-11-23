@@ -176,10 +176,18 @@ pipeline is cached, and individual methods return their own output dictionary.
 | Critical events | `calculate_critical_events()` |
 | Frame offset | `calculate_frame_offset()` |
 
-Some force-screen fields need 2D pose data. The current runner only supplies the
-3D input, so outputs such as `weight_shift` and `COM_MODELS` may be empty and
-their dependent 2D pixel fields may be omitted. The runner reports empty results
-instead of writing empty JSON files.
+Some force-screen fields need 2D pose data. These methods accept an optional
+`pose2d` argument:
+
+- `calculate_force_vectors(pose2d=...)`
+- `calculate_weight_shift(pose2d=...)`
+- `calculate_COM_MODELS(pose2d=...)`
+
+The session caches its force computation when the first force method runs. If a
+2D pose is available, pass it to the first call to one of the methods above;
+later calls cannot add it to a computation that was initialized without it.
+Without 2D pose data, `weight_shift` and `COM_MODELS` are omitted, along with
+the 2D pixel fields inside `force_vectors`.
 
 ## Club-fitting methods by movement type
 

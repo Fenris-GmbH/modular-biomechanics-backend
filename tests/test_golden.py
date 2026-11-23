@@ -78,7 +78,11 @@ def _compare_values(golden, actual, path="$", summary=None):
     return summary
 
 
-INPUT_FILES = sorted(INPUT_DIR.glob("*.json"))
+INPUT_FILES = sorted(
+    file for file in INPUT_DIR.glob("*.json")
+    if not file.stem.endswith("_2d")
+)
+
 FORCE_METHODS = (
     "calculate_force_vectors",
     "calculate_weight_shift",
@@ -95,6 +99,11 @@ FORCE_METHODS = (
     "calculate_critical_events",
     "calculate_frame_offset",
 )
+POSE2D_FORCE_METHODS = {
+    "calculate_force_vectors",
+    "calculate_weight_shift",
+    "calculate_COM_MODELS",
+}
 
 
 @pytest.mark.parametrize("input_path", INPUT_FILES, ids=lambda path: path.stem)
@@ -105,11 +114,17 @@ def test_modular_force_output_matches_monolithic_golden(input_path):
 
     input_json = _load_json(input_path)
     golden_output = _lowercase_keys(_load_json(golden_path))
+    pose2d_path = input_path.with_name(f"{swing_id}_2d.json")
+    pose2d = _load_json(pose2d_path) if pose2d_path.is_file() else None
 
     session = movement(input_json["data_3d_bio"])
     modular_output = {}
     for method_name in FORCE_METHODS:
-        result = getattr(session, method_name)()
+        method = getattr(session, method_name)
+        if pose2d is not None and method_name in POSE2D_FORCE_METHODS:
+            result = method(pose2d=pose2d)
+        else:
+            result = method()
         if result:
             modular_output.update(result)
 
