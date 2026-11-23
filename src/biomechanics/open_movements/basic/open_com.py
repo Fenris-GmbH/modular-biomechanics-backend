@@ -21,15 +21,10 @@ def com(ctx: Any, option: int = 1) -> np.ndarray:
     knee_l = m["knee_l"]
     ankle_l = m["ankle_l"]
     foot_l = m["foot_l"]
-    midfoot_l = m["midfoot_l"]
     hip_r = m["hip_r"]
     knee_r = m["knee_r"]
     ankle_r = m["ankle_r"]
     foot_r = m["foot_r"]
-    midfoot_r = m["midfoot_r"]
-    nose = m["nose"]
-    spine_low = m["spine_low"]
-    spine_high = m["spine_high"]
     shoulder_l = m["shoulder_l"]
     elbow_l = m["elbow_l"]
     wrist_l = m["wrist_l"]
@@ -41,10 +36,7 @@ def com(ctx: Any, option: int = 1) -> np.ndarray:
     neck = m["neck"]
     skullbase = m["skullbase"]
     skull = m["skull"]
-    club_main = m["club_main"]
-    club_head = m["club_head"]
-    ear_l = m["ear_l"]
-    ear_r = m["ear_r"]
+
     # % Compute center of mass of each segment
     calculate_COM = 1
     if calculate_COM == 1:
