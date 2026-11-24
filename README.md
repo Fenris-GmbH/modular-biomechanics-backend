@@ -1,7 +1,7 @@
 # Biomechanics Modular Backend
 
 Python package for processing tracked movement data into basic movement, force,
-and club-fitting outputs. The modular API exposes calculations individually so
+and data-screen (old: club fitting) outputs. The modular API exposes calculations individually so
 callers can request only the outputs they need. The runner calls each method in
 sequence and prints which methods ran and which movement-specific methods were
 skipped.
