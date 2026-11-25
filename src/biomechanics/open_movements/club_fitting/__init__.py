@@ -30,10 +30,10 @@ from .output_m2c_club_mechanics_highlights_right import M2C_club_mechanics_highl
 from .output_m2c_wrist_left import M2C_wrist_left
 from .output_m2c_wrist_right import M2C_wrist_right
 
-def compute_all(ctx: Any = None, *, computation: Any = None) -> dict[str, Any]:
+def compute_all(*, computation: Any = None, pose3d=None, movement_type=None, lefty=None, body_mass=None, frame_rate=None, down_the_line=None, handedness_specified=True, club_3d=None, bat_type=None, critical_events=None) -> dict[str, Any]:
     """Calculate and return all outputs supported by the movement type."""
     from .core import resolve
-    return resolve(computation=computation, ctx=ctx).compute_all()
+    return resolve(computation=computation, pose3d=pose3d, movement_type=movement_type, lefty=lefty, body_mass=body_mass, frame_rate=frame_rate, down_the_line=down_the_line, handedness_specified=handedness_specified).compute_all(club_3d=club_3d, bat_type=bat_type, critical_events=critical_events)
 
-__all__ = ['ClubFittingComputation', 'compute_all', 'generic_metric_equivalents', 'M2C_other_side_error', 'generic_widgets_error', 'M2C_power_left', 'M2C_power_right', 'M2C_club_mechanics_left', 'M2C_club_mechanics_right', 'M2C_club_mechanics_highlights_left', 'M2C_club_mechanics_highlights_right', 'M2C_wrist_left', 'M2C_wrist_right', 'movement_type', 'M2C_insights', 'Performance_metrics', 'M2C_power', 'M2C_club_mechanics', 'M2C_club_mechanics_highlights', 'M2C_wrist', 'M2C_force_vectors_hand_r_3d', 'M2C_force_vectors_bat_3d', 'M2C_skeleton_3d', 'pitcher_metric_equivalents', 'inPlaneMetrics', 'outOfPlaneMetrics', 'M2C_inplane_vectors', 'M2C_inplane_vectors_3d', 'M2C_kinetics_3d', 'generic']
+__all__ = ['ClubFittingComputation', 'compute_all', 'generic_metric_equivalents', 'M2C_other_side_error', 'generic_widgets_error', 'M2C_power_left', 'M2C_power_right', 'M2C_club_mechanics_left', 'M2C_club_mechanics_right', 'M2C_club_mechanics_highlights_left', 'M2C_club_mechanics_highlights_right', 'M2C_wrist_left', 'M2C_wrist_right', 'movement_type', 'M2C_insights', 'Performance_metrics', 'M2C_power', 'M2C_club_mechanics', 'M2C_club_mechanics_highlights', 'M2C_wrist', 'M2C_force_vectors_hand_r_3d', 'M2C_force_vectors_bat_3d', 'pitcher_metric_equivalents', 'inPlaneMetrics', 'outOfPlaneMetrics', 'M2C_inplane_vectors', 'M2C_inplane_vectors_3d', 'M2C_kinetics_3d']
 

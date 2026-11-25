@@ -1,4 +1,5 @@
 import json
+from typing import Union
 import numpy as np
 from scipy.signal import butter, sosfiltfilt, filtfilt
 from scipy.optimize import minimize
@@ -540,7 +541,7 @@ class ForceVectors:
         return found.strip().lower()
 
     @classmethod
-    def from_swing_type(cls, json3d: dict, **overrides) -> "ForceVectors":
+    def from_swing_type(cls, swing_type: Union[str, dict], **overrides) -> "ForceVectors":
         """Build the ForceVectors preset matching this input JSON's movement
         type, read from configuration.swing.swingType (see
         _extract_swing_type).
@@ -567,7 +568,8 @@ class ForceVectors:
         **overrides (or an explicit body_mass/frame_rate passed here) always
         win over both the extracted metadata and the preset's own default.
         """
-        swing_type = cls._extract_swing_type(json3d)
+        legacy_json = swing_type if isinstance(swing_type, dict) else None
+        swing_type = cls._extract_swing_type(legacy_json) if legacy_json is not None else swing_type
         preset_name = cls._SWING_TYPE_PRESETS.get(swing_type, "for_pitching")
         if swing_type not in cls._SWING_TYPE_PRESETS:
             logging.info(
@@ -577,7 +579,7 @@ class ForceVectors:
             )
         preset_fn = getattr(cls, preset_name)
 
-        meta = cls.extract_meta(json3d)
+        meta = cls.extract_meta(legacy_json) if legacy_json is not None else {}
         kwargs = {}
         if "body_mass" in meta:
             kwargs["body_mass"] = meta["body_mass"]
@@ -611,7 +613,7 @@ class ForceVectors:
         body_COM, time}}. Unchanged from v11. For the measured-force-equivalent
         response (Tz, moment arms, torques, COP trajectory, power, ...) use
         generate_forces_screen()."""
-        ctx = self._run_pipeline(json3d)
+        ctx = self._run_pipeline_json(json3d)
         return lowercase_output_keys(self._format_legacy_response(ctx))
 
     def generate_forces_screen(self, json3d, pose2d=None):
@@ -619,7 +621,7 @@ class ForceVectors:
         script's generate_force_vectors(), built from the COMPUTED forces. See
         _build_forces_screen for the definition of every channel and the list of
         keys that need pose2d."""
-        ctx = self._run_pipeline(json3d)
+        ctx = self._run_pipeline_json(json3d)
         return lowercase_output_keys(self._build_forces_screen(ctx, pose2d=pose2d))
 
     @classmethod
@@ -644,11 +646,24 @@ class ForceVectors:
             }
         }
 
-    def _run_pipeline(self, json3d):
-        """Shared computation behind both responses. Returns a context dict with
-        everything either formatter needs (nothing here changes v11 numerics)."""
+    def _run_pipeline_json(self, json3d):
+        """Compatibility adapter for the legacy one-shot JSON entrypoints."""
+        inner = json3d.get("data_3d_bio", json3d)
+        return self._run_pipeline(
+            self._extract_pose_array(json3d),
+            club_3d=inner.get("data", {}).get("club"),
+            club_type=self._extract_club_type(json3d),
+            critical_events=self.extract_positions(json3d),
+            lefty=self._extract_handedness(json3d) == "left",
+        )
+
+    def _run_pipeline(
+        self, pose3d, *, club_3d=None, club_type="driver",
+        critical_events=None, lefty=False,
+    ):
+        """Shared numerical computation from explicit inputs; no JSON parsing."""
         self._diag = {}  # fresh diagnostics for this call
-        M_data = self._extract_pose_array(json3d)
+        M_data = np.squeeze(np.asarray(pose3d))
 
         if self.swap_xy:
             # Tracking convention: axis 0 = depth (AP), axis 1 = lateral (ML), axis 2 = vertical.
@@ -670,7 +685,7 @@ class ForceVectors:
         markers = {name: np.squeeze(M_data[i]) for i, name in enumerate(marker_names)}
 
         if self.include_club:
-            club_start, club_end, club_mid = self._extract_club_array(json3d, n_frames_expected=M_data.shape[1])
+            club_start, club_end, club_mid = self._club_array_from_data(club_3d, n_frames_expected=M_data.shape[1])
             markers["club_grip"] = club_start
             markers["club_headpt"] = club_end
             markers["club_mid"] = club_mid
@@ -712,7 +727,7 @@ class ForceVectors:
         if self.include_club:
             if self.club_shaft_mass is None or self.club_head_mass is None:
                 # Default masses based on clubType in the input JSON (driver vs. iron)
-                club_type = self._extract_club_type(json3d)
+                club_type = str(club_type or "driver").strip().lower()
                 if club_type == "driver":
                     self.club_shaft_mass = 0.059  # kg
                     self.club_head_mass = 0.192  # kg
@@ -846,7 +861,7 @@ class ForceVectors:
         # (Earlier ad hoc per-channel sign-flip experiments removed -- see the
         # swap_lr constructor option instead, which addresses the suspected
         # left/right mislabeling at its source rather than flipping signs.)
-        positions = self.extract_positions(json3d)
+        positions = critical_events
         events = self._resolve_events(positions, markers, len(Fz_t))
         p1 = events["P1"]
 
@@ -883,7 +898,7 @@ class ForceVectors:
             "inv_dyn": inv_dyn,
             "positions": positions,
             "events": events,
-            "handedness": self._extract_handedness(json3d),
+            "handedness": "left" if lefty else "right",
             "Fx_l": Fx_l, "Fy_l": Fy_l, "Fz_l": Fz_l,
             "Fx_r": Fx_r, "Fy_r": Fy_r, "Fz_r": Fz_r,
             "Fx_t": Fx_t, "Fy_t": Fy_t, "Fz_t": Fz_t,
@@ -1538,10 +1553,12 @@ class ForceVectors:
         Returns (club_start, club_end, club_mid), each shape (n_frames, 3),
         frame-ordered to match the pose array (sorted by integer frame index).
         """
-        if "data_3d_bio" in json3d:
-            club = json3d["data_3d_bio"].get("data", {}).get("club")
-        else:
-            club = json3d.get("data", {}).get("club")
+        club = (json3d.get("data_3d_bio", json3d).get("data", {})
+                .get("club"))
+        return self._club_array_from_data(club, n_frames_expected)
+
+    def _club_array_from_data(self, club, n_frames_expected: int) -> tuple:
+        """Validate and convert explicitly supplied 3D club trajectories."""
         if not club:
             raise KeyError(
                 "include_club=True (the golf preset, swingType 'full swing') but no club "
@@ -2975,7 +2992,7 @@ if __name__ == "__main__":
             # ForceVectors.from_swing_type. The pipeline runs ONCE; both responses are
             # formatted from the same computation.
             fv = ForceVectors.from_swing_type(forces_data)
-            ctx = fv._run_pipeline(forces_data)
+            ctx = fv._run_pipeline_json(forces_data)
 
             # Build and serialize BOTH responses before touching disk, so a failure never
             # leaves a partial or empty output file behind.

@@ -2,7 +2,7 @@
 force_screen_modules.py
 =======================
 Modular front end for the forces-screen response of the force-prediction engine
-(force_vectors_v13_forces_screen_contactgate_lefthanded_handling.py, imported unchanged).
+(force_vectors_v13_forces_screen_contactgate_lefthanded_handling.py).
 
 Every top-level key of the forces-screen response is now its own function. Each one returns
 {key: response} and, if output_dir is given, writes <key>.json (optionally <name_prefix><key>.json):
@@ -11,16 +11,15 @@ Every top-level key of the forces-screen response is now its own function. Each 
     COM_MODELS, power, energy, impulse, small_force_vectors, COM_COP_traj_back_view,
     critical_events, frame_offset
 
-    energy(json3d)                                   # -> {"energy": {...}}, nothing else computed for output
-    energy(json3d, output_dir="out")                 # also writes out/energy.json
-    comp = ForcesScreen(json3d, pose2d)              # run the heavy force computation ONCE ...
-    forces(computation=comp); impulse(computation=comp)   # ... and reuse it for several outputs
-    compute_all(json3d, pose2d, output_dir="out")    # every key (== the v13 forces-screen response)
+    comp = ForcesScreen(pose3d=..., body_mass=..., frame_rate=...,
+                        swing_type=..., lefty=..., critical_events=...)
+    forces(computation=comp); impulse(computation=comp)
+    COM_MODELS(computation=comp, pose2d=...)
+    compute_all(computation=comp, pose2d=...)
 
-INPUTS ARE UNCHANGED: json3d (configuration + data.pose [+ data.club]) and optional pose2d are read
-by the engine exactly as before. describe_requirements() lists, per function, the configuration
-fields (and data) it needs, so the input can later be split into config.json / pose_3d.json /
-pose_2d.json. resolved_configuration(json3d) shows what the engine will ACTUALLY use today.
+All core inputs are explicit. Only the legacy output wrapper argument name
+json3d=None remains for positional compatibility; passing JSON is unsupported.
+Legacy engine one-shot JSON adapters are retained separately.
 
 Each stage below is generated verbatim from the v13 builder; outputs are verified identical to
 ForceVectors._build_forces_screen().
@@ -29,6 +28,7 @@ ForceVectors._build_forces_screen().
 import json
 import logging
 import math
+from typing import Optional
 import os
 
 import numpy as np
@@ -1712,17 +1712,43 @@ class ForcesScreen:
     once, and each stage runs only if an output needs it. Create it once and pass it to several
     output functions via computation=... to avoid recomputing."""
 
-    def __init__(self, json3d: dict, pose2d: dict = None, **overrides):
-        self.json3d, self.pose2d = json3d, pose2d
+    def __init__(
+        self,
+        pose3d: np.ndarray,
+        body_mass: float,
+        frame_rate: float,
+        swing_type: str,
+        lefty: bool,
+        *,
+        club_3d: Optional[dict] = None,
+        club_type: str = "driver",
+        critical_events: Optional[dict] = None,
+        **model_overrides,
+    ):
+        self.pose3d = pose3d
+        self.club_3d = club_3d
+        self.club_type = club_type
+        self.critical_events = critical_events
+        self.lefty = lefty
+        self.pose2d = None  # supplied to individual output functions
         self.fv = ForceVectors.from_swing_type(
-            json3d, **overrides
-        )  # preset from swingType (+ overrides)
+            swing_type,
+            body_mass=body_mass,
+            frame_rate=frame_rate,
+            **model_overrides,
+        )
         self._ctx, self._S, self._done = None, None, set()
 
     @property
     def ctx(self):
         if self._ctx is None:
-            self._ctx = self.fv._run_pipeline(self.json3d)
+            self._ctx = self.fv._run_pipeline(
+                self.pose3d,
+                club_3d=self.club_3d,
+                club_type=self.club_type,
+                critical_events=self.critical_events,
+                lefty=self.lefty,
+            )
         return self._ctx
 
     def _run(self, stage):
@@ -1736,13 +1762,17 @@ class ForcesScreen:
         self._S.update(func(self.fv, self._S))
         self._done.add(stage)
 
-    def get(self, key):
+    def get(self, key, *, pose2d=None):
+        # Changing 2D data resets ONLY presentation-stage caches; reuse numerical _ctx.
+        if pose2d is not None and pose2d is not self.pose2d:
+            self.pose2d = pose2d
+            self._S, self._done = None, set()
         if key not in OUTPUT_KEYS:
             raise KeyError(f"unknown output {key!r}; choose from {OUTPUT_KEYS}")
         if key == "frame_offset":  # predicted forces need no plate time-sync
             return 0
         if key == "critical_events":  # echo of the input events; no force computation
-            pos = self.fv.extract_positions(self.json3d)
+            pos = self.critical_events
             return lowercase_output_keys({
                 k: (v + 0 if isinstance(v, (int, float)) else v)
                 for k, v in (pos if isinstance(pos, dict) else {}).items()
@@ -1761,10 +1791,10 @@ class ForcesScreen:
 
 def _produce(key, json3d, pose2d, computation, output_dir, name_prefix, overrides):
     if computation is None:
-        if json3d is None:
-            raise ValueError("pass json3d (or computation=ForcesScreen(...))")
-        computation = ForcesScreen(json3d, pose2d, **overrides)
-    val = computation.get(key)
+        if json3d is not None:
+            raise TypeError("JSON ingestion moved to Context; initialize ForcesScreen with explicit inputs")
+        computation = ForcesScreen(**overrides)
+    val = computation.get(key, pose2d=pose2d)
     if val is None:
         return {}
     result = lowercase_output_keys({key: val})
@@ -1776,15 +1806,16 @@ def _produce(key, json3d, pose2d, computation, output_dir, name_prefix, override
 
 
 def compute_all(
-    json3d, pose2d=None, keys=None, output_dir=None, name_prefix="", **overrides
+    *, computation=None, pose2d=None, keys=None, output_dir=None,
+    name_prefix="", **inputs,
 ):
     """All (or the chosen) outputs from ONE computation; returns the merged response (identical to
     the v13 forces-screen response) and writes <key>.json per key if output_dir is given.
     """
-    comp = ForcesScreen(json3d, pose2d, **overrides)
+    comp = computation if computation is not None else ForcesScreen(**inputs)
     merged = {}
     for k in keys or OUTPUT_KEYS:
-        merged.update(_produce(k, None, None, comp, output_dir, name_prefix, {}))
+        merged.update(_produce(k, None, pose2d, comp, output_dir, name_prefix, {}))
     return merged
 
 
@@ -1805,18 +1836,23 @@ def describe_requirements(key=None):
     }
 
 
-def resolved_configuration(json3d, **overrides):
-    """What the engine will ACTUALLY use for this file with today's input reader."""
-    fv = ForceVectors.from_swing_type(json3d, **overrides)
+def resolved_configuration(
+    *, swing_type, body_mass, frame_rate, lefty, club_type="driver",
+    critical_events=None, **model_overrides,
+):
+    """Show the resolved numerical model configuration without parsing JSON."""
+    fv = ForceVectors.from_swing_type(
+        swing_type, body_mass=body_mass, frame_rate=frame_rate, **model_overrides
+    )
     return {
-        "swingType": ForceVectors._extract_swing_type(json3d),
-        "handedness": ForceVectors._extract_handedness(json3d),
-        "clubType": ForceVectors._extract_club_type(json3d),
+        "swingType": swing_type,
+        "handedness": "left" if lefty else "right",
+        "clubType": club_type,
         "body_mass_kg": fv.body_mass,
         "frame_rate_hz": fv.frame_rate,
         "continuous_contact": fv.continuous_contact,
         "include_club": fv.include_club,
-        "critical_events": fv.extract_positions(json3d),
+        "critical_events": critical_events,
     }
 
 

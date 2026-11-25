@@ -248,3 +248,16 @@ def numpy_int_parser(obj: Any) -> int:
     if isinstance(obj, np.int64):
         return int(obj)
     raise TypeError
+
+def data_3d_bio_parser(json3d):
+    config = json3d.get("configuration") #NOTE: Remove
+    pose3d =  np.squeeze(np.asarray(json3d["data"]["pose"], dtype=float)).copy()
+    frame_rate = config["video"]["frame_rate"] #NOTE CORE
+    weight = config["user"]["weight"] #NOTE CORE
+    orientation = config["swing"]["orientation"]
+    handedness = config["swing"]["handedness"]
+    movement_type = config["swing"]["swingType"] #NOTE CORE
+    
+    input_critical_events = json3d['configuration']['swing']['critical_events']
+    club_3d_markers =  json3d['data']['club']
+    return pose3d,frame_rate,weight,orientation,handedness,movement_type,input_critical_events,club_3d_markers
