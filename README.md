@@ -2,9 +2,8 @@
 
 Python package for processing tracked movement data into basic movement, force,
 and club-fitting outputs. The modular API exposes calculations individually so
-callers can request only the outputs they need. The runner calls each method in
-sequence and prints which methods ran and which movement-specific methods were
-skipped.
+callers can request only the outputs they need. `scripts/generic_runner.py`
+demonstrates a sequence of method calls for one configured trial.
 
 ## Requirements and installation
 
@@ -15,20 +14,6 @@ From the repository root, install the package into the active Python environment
 
 ```powershell
 python -m pip install -e .
-```
-
-Some existing source modules still use a top-level `import constants`. When
-running from a source checkout, add both source directories to `PYTHONPATH` so
-those imports resolve. In PowerShell:
-
-```powershell
-$env:PYTHONPATH = "src;src/biomechanics"
-```
-
-In Bash:
-
-```bash
-export PYTHONPATH="src:src/biomechanics"
 ```
 
 Pytest is used for the golden suite but is not a runtime dependency:
@@ -48,8 +33,7 @@ work in some environments, but is not the supported configuration.
 | `src/biomechanics/main.py` | `movement` session and individual basic, force, and club-fitting methods |
 | `src/biomechanics/open_movements/forces/` | Force prediction engine and staged force-screen outputs |
 | `src/biomechanics/open_movements/club_fitting/` | Movement-specific club-fitting calculations and output methods |
-| `src/data_ingestion/` | Input-loading utilities and data models |
-| `scripts/main_runner.py` | Callable runner for one or more local input trials |
+| `scripts/generic_runner.py` | Example runner for one configured local input trial |
 | `tests/test_golden.py` | Per-input golden comparisons for basic, force, and applicable club outputs |
 | `tests/fixtures/` | Local test input copies for the golden suite |
 | `inputs/` | Local input trials |
@@ -64,7 +48,7 @@ trackable.
 
 ## Input format
 
-The runner looks for one JSON file at:
+The example runner reads one JSON file at:
 
 ```text
 inputs/<swing_id>/<swing_id>.json
@@ -83,65 +67,74 @@ when supplying only the inner `data_3d_bio` object.
 
 ## Running the modular methods
 
-`scripts/main_runner.py` exposes three callable entry points:
-
-- `run_swing(swing_id, save_json=False)` runs one trial.
-- `run_all(swing_ids=None, save_json=False)` runs the requested IDs, or discovers
-  every input directory containing a JSON file when IDs are omitted.
-- `main(swing_ids=None, save_json=False)` delegates to `run_all`.
-
-For example, run one trial without writing files:
-
-```python
-from scripts.main_runner import run_swing
-
-results = run_swing(swing_id, save_json=False)
-```
-
-Run selected trials and write each nonempty method result separately:
-
-```python
-from scripts.main_runner import run_all
-
-results = run_all(
-    swing_ids=[
-        swing_id_1,
-        swing_id_2,
-    ],
-    save_json=True,
-)
-```
-
-When `save_json=True`, the runner writes method results beneath
-`outputs/<swing_id>/`, using filenames such as
-`<swing_id>_kinematic_sequence.json`, `<swing_id>_forces.json`, and
-`<swing_id>_M2C_power.json`. Each file contains the dictionary returned by that
-method. Empty optional results are reported and not written.
-
-Launching the script directly runs all discovered input IDs and saves results:
+`scripts/generic_runner.py` reads the `swing_id` configured in its `__main__`
+block, runs that trial, and writes nonempty method results to
+`outputs/<swing_id>/<metric>.json`. Change `swing_id` in the script to select a
+different trial. Run it from the repository root:
 
 ```powershell
-python scripts/main_runner.py
-```
-
-To choose IDs when launching the script directly, edit the call in the
-`if __name__ == "__main__":` block, for example:
-
-```python
-main(
-    swing_ids=[swing_id],
-    save_json=True,
-)
+python scripts/generic_runner.py
 ```
 
 Importing the module does not start processing. Within a `movement` session,
 force methods share a cached force computation; club-fitting methods share a
-cached club-fitting computation. The runner still calls and reports each
-individual output method so it is clear which results were requested.
+cached club-fitting computation.
+
+## Mode configuration reference
+
+`configs/mode_configs.py` is a reference for constructing sessions, setting up
+shared computations, and calling methods with their required inputs. It is not
+currently consumed by `scripts/generic_runner.py`.
+
+The `movement` constructor takes these parsed values as named arguments:
+
+```python
+session = movement(
+    pose3d=pose3d,
+    movement_type=movement_type,
+    frame_rate=frame_rate,
+    weight=weight,
+    orientation=orientation,
+    handedness=handedness,
+)
+```
+
+The mode reference uses `baseball` with a fixed movement type of `hitting` or
+`pitching`, and `golf` with `full swing`. Its generic mode uses `movement` and
+passes through the input movement type. For example, `jump` is a generic
+club-fitting movement:
+
+```python
+session = movement(
+    pose3d=pose3d,
+    movement_type="jump",
+    frame_rate=frame_rate,
+    weight=weight,
+    orientation=orientation,
+    handedness=handedness,
+)
+```
+
+Force setup is shared by the force methods. Golf requires `club_3d` when
+`include_club=True`; the mode reference also passes `club_type`, which has a
+method default. `critical_events` can also be passed.
+Hitting, pitching, and generic force setup use `include_club=False`. Only
+`calculate_force_vectors`, `calculate_weight_shift`, and
+`calculate_COM_MODELS` accept `pose2d`. The force engine has no dedicated jump
+preset, so unknown force movement types use its pitching preset. The generic
+mode refers to the club-fitting graph, not a generic force model.
+
+Club-fitting methods take inputs per calculation. Hitting metrics that use club
+tracking receive `club_3d`; metrics that depend on the bat model also receive
+`bat_type`; event-based metrics receive `critical_events`. Pitching event-based
+metrics receive `critical_events`. Golf and other generic movements use the
+generic club-fitting graph. `calculate_all_club_fitting()` returns its combined
+outputs, including side-specific widgets, skeleton data, diagnostics, and
+metric equivalents.
 
 ## Basic screen methods
 
-The runner calls these methods for every trial:
+The example runner calls these basic methods for its configured trial:
 
 | Output | Method |
 | --- | --- |
@@ -156,8 +149,9 @@ basic time vector.
 
 ## Force methods
 
-All listed force methods are attempted for each movement type. The shared force
-pipeline is cached, and individual methods return their own output dictionary.
+The example runner calls these force methods for its configured trial. The
+shared force pipeline is cached, and each method returns its own output
+dictionary.
 
 | Output | Method |
 | --- | --- |
@@ -183,19 +177,16 @@ Some force-screen fields need 2D pose data. These methods accept an optional
 - `calculate_weight_shift(pose2d=...)`
 - `calculate_COM_MODELS(pose2d=...)`
 
-The session caches its force computation when the first force method runs. If a
-2D pose is available, pass it to the first call to one of the methods above;
-later calls cannot add it to a computation that was initialized without it.
-Without 2D pose data, `weight_shift` and `COM_MODELS` are omitted, along with
-the 2D pixel fields inside `force_vectors`.
+The session caches its force computation. A later call can add or replace
+`pose2d`; the force pipeline reuses its numerical context and refreshes the
+2D-dependent output stages. Without 2D pose data, `weight_shift` and
+`COM_MODELS` are omitted, along with the 2D pixel fields inside `force_vectors`.
 
 ## Club-fitting methods by movement type
 
-Club-fitting first classifies the input `configuration.swing.swingType`. It
-recognizes the exact lower-cased values `hitting` and `pitching`; other values
-are classified as `generic` by the club-fitting implementation. The runner
-checks the available output keys and prints a `SKIP` line for each unavailable
-method, including the movement type for which the method is registered.
+Club-fitting classifies the movement type. It recognizes the lower-cased values
+`hitting` and `pitching`; other values are classified as `generic`. The
+available methods depend on this classification.
 
 ### Available outputs
 
@@ -241,8 +232,7 @@ returned scalar/list values using `rel_tol=1e-9` and `abs_tol=1e-12`.
 Run the suite from the repository root:
 
 ```powershell
-$env:PYTHONPATH = "src;src/biomechanics"
-python -m pytest tests/test_force_output_golden.py -q
+python -m pytest tests/test_golden.py -q
 ```
 
 Fixture and reference JSONs are intentionally ignored by Git. A fresh checkout

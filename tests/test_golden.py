@@ -5,18 +5,17 @@ import math
 import numbers
 import sys
 from pathlib import Path
-
 import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-INPUT_DIR = PROJECT_ROOT / "tests" / "fixtures" / "golden_inputs"
+INPUT_DIR = PROJECT_ROOT / "tests" / "fixtures" / "golden_inputs_generic"
 REF_OUTPUTS_DIR = PROJECT_ROOT / "ref_outputs"
 EXCLUDE_KEYS = ["error_messages","generic","m2c_skeleton_3d","generic_metric_equivalents"]
 
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from biomechanics.main import movement  # noqa: E402
-from biomechanics.utils.test_helpers import CLUB_FITTING_METHODS  # noqa: E402
+from biomechanics.utils.test_helpers import CLUB_FITTING_METHODS,data_3d_bio_parser  # noqa: E402
 
 
 def _compare_values(golden, actual, path="$", summary=None):
@@ -99,10 +98,10 @@ FORCE_METHODS = (
     "calculate_critical_events",
     "calculate_frame_offset",
 )
-POSE2D_FORCE_METHODS = {
-    "calculate_force_vectors",
-    "calculate_weight_shift",
-    "calculate_COM_MODELS",
+FORCE_METHOD_INPUTS = {
+    "calculate_force_vectors": ("pose2d",),
+    "calculate_weight_shift": ("pose2d",),
+    "calculate_COM_MODELS": ("pose2d",),
 }
 
 
@@ -117,14 +116,37 @@ def test_modular_force_output_matches_monolithic_golden(input_path):
     pose2d_path = input_path.with_name(f"{swing_id}_2d.json")
     pose2d = _load_json(pose2d_path) if pose2d_path.is_file() else None
 
-    session = movement(input_json["data_3d_bio"])
+    recording = input_json["data_3d_bio"]
+    swing = recording["configuration"]["swing"]
+
+    pose3d,frame_rate,weight,orientation,handedness,movement_name,input_critical_events,club_3d_markers = data_3d_bio_parser(input_json['data_3d_bio'])
+
+    fixture_inputs = {
+    "club_3d": club_3d_markers,
+    "club_type": swing.get("clubType"),
+    "critical_events": input_critical_events,
+    "pose2d": pose2d,
+    }
+    session = movement(pose3d=pose3d,movement_type=movement_name,frame_rate =frame_rate,weight=weight,orientation=orientation,handedness=handedness)
+    include_club = (
+        movement_name == "full swing"
+        and fixture_inputs["club_3d"] is not None
+    )
+    session.initialize_forces(
+        club_3d=fixture_inputs["club_3d"],
+        include_club=include_club,
+        club_type=fixture_inputs["club_type"],
+        critical_events=fixture_inputs["critical_events"],
+    )
     modular_output = {}
     for method_name in FORCE_METHODS:
         method = getattr(session, method_name)
-        if pose2d is not None and method_name in POSE2D_FORCE_METHODS:
-            result = method(pose2d=pose2d)
-        else:
-            result = method()
+        method_kwargs = {
+            name: fixture_inputs[name]
+            for name in FORCE_METHOD_INPUTS.get(method_name, ())
+            if fixture_inputs[name] is not None
+        }
+        result = method(**method_kwargs)
         if result:
             modular_output.update(result)
 
@@ -180,8 +202,10 @@ def test_modular_basic_screen_methods_match_monolithic_golden(input_path):
     assert golden_path.is_file(), f"Missing basic screen golden output: {golden_path}"
 
     input_json = _load_json(input_path)
+    pose3d,frame_rate,weight,orientation,handedness,movement_name,input_critical_events,club_3d_markers = data_3d_bio_parser(input_json['data_3d_bio'])
+
     golden_output = _lowercase_keys(_load_json(golden_path))
-    session = movement(input_json["data_3d_bio"])
+    session = movement(pose3d=pose3d,movement_type=movement_name,frame_rate =frame_rate,weight=weight,orientation=orientation,handedness=handedness)
 
     modular_output = {
         **session.calculate_kinematic_sequence(),
@@ -201,6 +225,29 @@ def test_modular_basic_screen_methods_match_monolithic_golden(input_path):
     differences = _compare_values(golden_methods, modular_output)
     _assert_matches_golden(differences, "basic screen")
 
+HITTING_METHOD_INPUTS = {
+    "m2c_insights": ("club_3d", "critical_events"),
+    "m2c_wrist": ("club_3d",),
+    "m2c_skeleton_3d": ("club_3d",),
+    "performance_metrics": ("club_3d", "bat_type", "critical_events"),
+    "m2c_power": ("club_3d", "bat_type", "critical_events"),
+    "m2c_club_mechanics": ("club_3d", "bat_type", "critical_events"),
+    "m2c_club_mechanics_highlights": ("club_3d", "bat_type", "critical_events"),
+    "m2c_force_vectors_bat_3d": ("club_3d", "bat_type", "critical_events"),
+    "inplanemetrics": ("club_3d", "bat_type", "critical_events"),
+    "outofplanemetrics": ("club_3d", "bat_type", "critical_events"),
+    "m2c_inplane_vectors": ("club_3d", "bat_type", "critical_events"),
+    "m2c_inplane_vectors_3d": ("club_3d", "bat_type", "critical_events"),
+    "m2c_kinetics_3d": ("club_3d", "bat_type", "critical_events"),
+}
+
+PITCHING_METHOD_INPUTS = {
+    "m2c_insights": ("critical_events",),
+    "performance_metrics": ("critical_events",),
+    "m2c_power": ("critical_events",),
+    "m2c_club_mechanics_highlights": ("critical_events",),
+}
+
 
 @pytest.mark.parametrize("input_path", INPUT_FILES, ids=lambda path: path.stem)
 def test_modular_applicable_club_methods_match_monolithic_golden(input_path):
@@ -209,24 +256,65 @@ def test_modular_applicable_club_methods_match_monolithic_golden(input_path):
     assert golden_path.is_file(), f"Missing club fitting golden output: {golden_path}"
 
     input_json = _load_json(input_path)
+    recording = input_json["data_3d_bio"]
+    swing = recording["configuration"]["swing"]
+
+    bat_type = swing.get("BatType")
+
+
     golden_output = _lowercase_keys(_load_json(golden_path))
     for key in EXCLUDE_KEYS:
-        try:
-            golden_output.pop(key)
-        except Exception as e:
-            print(e)
-            pass
-    session = movement(input_json["data_3d_bio"])
+        golden_output.pop(key, None)
+
+    pose3d,frame_rate,weight,orientation,handedness,movement_name,input_critical_events,club_3d_markers = data_3d_bio_parser(input_json['data_3d_bio'])
+
+    fixture_inputs = {
+        "club_3d": club_3d_markers,
+        "bat_type": bat_type,
+        "critical_events": input_critical_events,
+    }
+    fixture_paths = {
+        "club_3d": "data.club",
+        "bat_type": "configuration.swing.BatType",
+        "critical_events": "configuration.swing.critical_events",
+    }
+
+    session = movement(pose3d=pose3d,movement_type=movement_name,frame_rate =frame_rate,weight=weight,orientation=orientation,handedness=handedness)
+    session.initialize_club_fitting()
 
     modular_output = session.calculate_movement_type()
-    available_keys = set(session._get_club_fitting().available_keys)
+    movement_type = modular_output["movement_type"]
+    if movement_type not in ["full swing","hitting"]:
+        club_3d=None
+
+    if movement_type == "hitting":
+        method_inputs = HITTING_METHOD_INPUTS
+    elif movement_type == "pitching":
+        method_inputs = PITCHING_METHOD_INPUTS
+    else:
+        assert movement_type == "generic", f"Unexpected movement type: {movement_type}"
+        method_inputs = {}
+
+    available_keys = {
+        key.lower() for key in session._get_club_fitting().available_keys
+    }
+
     for output_key, method_name in CLUB_FITTING_METHODS.items():
+        output_key = output_key.lower()
         if output_key == "movement_type" or output_key not in available_keys:
             continue
-        result = getattr(session, method_name)()
+
+        kwargs = {}
+        for name in method_inputs.get(output_key, ()):
+            value = fixture_inputs[name]
+            assert value is not None, (
+                f"{swing_id}: {method_name} requires {fixture_paths[name]}"
+            )
+            kwargs[name] = value
+
+        result = getattr(session, method_name)(**kwargs)
         if result:
             modular_output.update(result)
 
     differences = _compare_values(golden_output, modular_output)
-
     _assert_matches_golden(differences, "club fitting")
