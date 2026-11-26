@@ -2,7 +2,7 @@ from typing import Any
 
 import numpy as np
 from scipy import signal
-from biomechanics.constants import CM_TO_INCH
+from biomechanics.constants import Conversions
 
 
 def segment_displacements(ctx: Any) -> dict[str, Any]:
@@ -25,9 +25,9 @@ def segment_displacements(ctx: Any) -> dict[str, Any]:
     pelvis_sway[0] = 0
     pelvis_thrust[0] = 0
     pelvis_lift[0] = 0
-    pelvis_sway_inch = pelvis_sway * CM_TO_INCH  # inch
-    pelvis_thrust_inch = pelvis_thrust * CM_TO_INCH  # inch
-    pelvis_lift_inch = pelvis_lift * CM_TO_INCH  # inch
+    pelvis_sway_inch = pelvis_sway * Conversions.CM_TO_INCH  # inch
+    pelvis_thrust_inch = pelvis_thrust * Conversions.CM_TO_INCH  # inch
+    pelvis_lift_inch = pelvis_lift * Conversions.CM_TO_INCH  # inch
 
     # Head displacements
     head_sway = 100 * (skullbase[:, 1] - skullbase[0, 1])
@@ -40,9 +40,9 @@ def segment_displacements(ctx: Any) -> dict[str, Any]:
     head_sway[0] = 0
     head_thrust[0] = 0
     head_lift[0] = 0
-    head_sway_inch = head_sway * CM_TO_INCH  # inch
-    head_thrust_inch = head_thrust * CM_TO_INCH  # inch
-    head_lift_inch = head_lift * CM_TO_INCH  # inch
+    head_sway_inch = head_sway * Conversions.CM_TO_INCH  # inch
+    head_thrust_inch = head_thrust * Conversions.CM_TO_INCH  # inch
+    head_lift_inch = head_lift * Conversions.CM_TO_INCH  # inch
 
     # Chest displacements
     chest_sway = 100 * (spine_high[:, 1] - spine_high[0, 1])
@@ -55,9 +55,9 @@ def segment_displacements(ctx: Any) -> dict[str, Any]:
     chest_sway[0] = 0
     chest_thrust[0] = 0
     chest_lift[0] = 0
-    chest_sway_inch = chest_sway * CM_TO_INCH  # inch
-    chest_thrust_inch = chest_thrust * CM_TO_INCH  # inch
-    chest_lift_inch = chest_lift * CM_TO_INCH  # inch
+    chest_sway_inch = chest_sway * Conversions.CM_TO_INCH  # inch
+    chest_thrust_inch = chest_thrust * Conversions.CM_TO_INCH  # inch
+    chest_lift_inch = chest_lift * Conversions.CM_TO_INCH  # inch
     return {
         "segment_displacements": {
             "head_sway": np.around(head_sway, 2).tolist(),

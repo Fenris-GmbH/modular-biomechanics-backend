@@ -33,6 +33,7 @@ import os
 
 import numpy as np
 from biomechanics.utils.output_keys import lowercase_output_keys
+from biomechanics.constants import GolfClubs
 
 try:
     from biomechanics.open_movements.forces.force_vectors_v13_forces_screen_contactgate_lefthanded_handling import (
@@ -1721,7 +1722,7 @@ class ForcesScreen:
         lefty: bool,
         *,
         club_3d: Optional[dict] = None,
-        club_type: str = "driver",
+        club_type: str = GolfClubs.DRIVER,
         critical_events: Optional[dict] = None,
         **model_overrides,
     ):
@@ -1837,7 +1838,7 @@ def describe_requirements(key=None):
 
 
 def resolved_configuration(
-    *, swing_type, body_mass, frame_rate, lefty, club_type="driver",
+    *, swing_type, body_mass, frame_rate, lefty, club_type=GolfClubs.DRIVER,
     critical_events=None, **model_overrides,
 ):
     """Show the resolved numerical model configuration without parsing JSON."""

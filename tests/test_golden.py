@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-INPUT_DIR = PROJECT_ROOT / "tests" / "fixtures" / "golden_inputs_generic"
+INPUT_DIR = PROJECT_ROOT / "tests" / "fixtures" / "golden_inputs"
 REF_OUTPUTS_DIR = PROJECT_ROOT / "ref_outputs"
 EXCLUDE_KEYS = ["error_messages","generic","m2c_skeleton_3d","generic_metric_equivalents"]
 
@@ -16,6 +16,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from biomechanics.main import movement  # noqa: E402
 from biomechanics.utils.test_helpers import CLUB_FITTING_METHODS,data_3d_bio_parser  # noqa: E402
+from biomechanics.constants import BaseballMovements, GolfSwings
 
 
 def _compare_values(golden, actual, path="$", summary=None):
@@ -129,7 +130,7 @@ def test_modular_force_output_matches_monolithic_golden(input_path):
     }
     session = movement(pose3d=pose3d,movement_type=movement_name,frame_rate =frame_rate,weight=weight,orientation=orientation,handedness=handedness)
     include_club = (
-        movement_name == "full swing"
+        movement_name == GolfSwings.FULL_SWING
         and fixture_inputs["club_3d"] is not None
     )
     session.initialize_forces(
@@ -284,12 +285,12 @@ def test_modular_applicable_club_methods_match_monolithic_golden(input_path):
 
     modular_output = session.calculate_movement_type()
     movement_type = modular_output["movement_type"]
-    if movement_type not in ["full swing","hitting"]:
+    if movement_type not in [GolfSwings.FULL_SWING, BaseballMovements.HITTING]:
         club_3d=None
 
-    if movement_type == "hitting":
+    if movement_type == BaseballMovements.HITTING:
         method_inputs = HITTING_METHOD_INPUTS
-    elif movement_type == "pitching":
+    elif movement_type == BaseballMovements.PITCHING:
         method_inputs = PITCHING_METHOD_INPUTS
     else:
         assert movement_type == "generic", f"Unexpected movement type: {movement_type}"
