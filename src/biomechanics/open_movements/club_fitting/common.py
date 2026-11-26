@@ -1,6 +1,6 @@
 import math
-
 import numpy as np
+from biomechanics.constants import Conversions
 
 
 def fit_plane(point_cloud):
@@ -58,8 +58,7 @@ def hand_arc(hand_l, hand_r, spine_high):
             )
         )
     arc_width = np.array(arc_width)
-    cm_to_inch_factor = 0.3937007874
-    arc_width_inch = arc_width * cm_to_inch_factor
+    arc_width_inch = arc_width * Conversions.CM_TO_INCH
     return arc_width, arc_width_inch
 
 

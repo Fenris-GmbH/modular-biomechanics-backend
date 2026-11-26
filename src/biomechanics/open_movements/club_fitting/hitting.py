@@ -3,6 +3,7 @@ import math
 import numpy as np
 from scipy import signal
 
+from biomechanics.constants import Conversions, Filters, GolfClubs
 from .common import fit_plane
 from .math_helpers import rms
 
@@ -239,7 +240,7 @@ def lead_hand_power(W, dt, frame_rate, hand_l):
 
 
 def equipment_mass(bat_type):
-    if bat_type == "driver":  # == 1:
+    if bat_type == GolfClubs.DRIVER:  # == 1:
         shaft_mass = 0.059  # in kg
         club_head_mass = 0.192  # in kg
     else:
@@ -260,10 +261,10 @@ def head_motion(club_head, club_head_mass, dt, frame_rate):
     club_speed_Y = np.gradient(club_head[:, 1], dt)
     club_speed_Z = np.gradient(club_head[:, 2], dt)
     club_speed = np.sqrt(club_speed_X**2 + club_speed_Y**2 + club_speed_Z**2)  # m/s
-    fc = 5  # Hz
-    N = 4  # Order of butterworth filter
+    fc = Filters.CLUB_SPEED_FC  # Hz
+    N = Filters.CLUB_SPEED_N  # Order of butterworth filter
     c, d = signal.butter(N, fc / (frame_rate / 2))
-    club_speed = np.array(club_speed) / 2.23693629
+    club_speed = np.array(club_speed) / Conversions.MPS_TO_MPH
     club_speed = signal.filtfilt(c, d, club_speed)
     club_head_acc = np.gradient(club_speed, dt)
     F_club_head = club_head_mass * club_head_acc  # N
@@ -279,7 +280,7 @@ def power_index(bat_type, club_head_power, p4, p7):
     if p4 > p7:
         raise ValueError("power window requires p4 <= p7")
     peak_club_power = max(club_head_power[p4 : p7 + 1])
-    if bat_type == "driver":
+    if bat_type == GolfClubs.DRIVER:
         mean_club_power1 = 4457
         std_club_power1 = 497
     else:

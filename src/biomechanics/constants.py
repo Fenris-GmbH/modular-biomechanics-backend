@@ -32,4 +32,34 @@ SEGMENT_MASS_FRACTIONS = {
     "foot_l": foot_l_m,
 }
 
-CM_TO_INCH = 0.3937007874
+class Camera:
+    ORIENTATION_DOWN_THE_LINE = "DownTheLine"
+    ORIENTATION_FACEON = "FaceOn"
+
+class BaseballMovements:
+    HITTING = "hitting"
+    PITCHING = "pitching"
+
+class GolfSwings:
+    FULL_SWING = "full swing"
+
+class GolfClubs:
+    IRON = "iron"
+    DRIVER = "driver"
+
+class Player:
+    HANDEDNESS_LEFT = "lefthanded"
+    HANDEDNESS_RIGHT = "righthanded"
+
+class ErrorMessages:
+    MISSING_P_POS = "Missing P positions in config"
+    MISSING_FORCE_DATA = "Missing force data"
+
+class Filters:
+    CLUB_SPEED_FC = 5
+    CLUB_SPEED_N = 4
+
+class Conversions:
+    MPS_TO_MPH = 2.23693629
+    CM_TO_INCH = 0.3937007874
+

@@ -55,7 +55,7 @@ from biomechanics.open_movements.club_fitting import (
     M2C_wrist_left,
     M2C_wrist_right,
 )
-
+from biomechanics.constants import Camera, GolfClubs, GolfSwings, Player
 logger = logging.getLogger(__file__)
 
 
@@ -160,7 +160,7 @@ class movement:
     def __init__(self, pose3d=None,movement_type:str=None,frame_rate:int =None,weight:float =None,orientation:str =None,handedness:str =None) -> None:
         """Create a session from the inner ``data_3d_bio`` input object."""
 
-        down_the_line = orientation.lower() == "downtheline"
+        down_the_line = orientation.lower() == Camera.ORIENTATION_DOWN_THE_LINE.lower()
         lefty = "left" in handedness.lower()
 
         self.ctx = prepare(pose=pose3d,movement_type=movement_type,frame_rate=frame_rate,weight=weight,down_the_line=down_the_line,lefty=lefty)
@@ -213,14 +213,14 @@ class movement:
 
         if include_club is None:
             include_club = (
-                ctx.movement_type.lower() == "full swing"
+                ctx.movement_type.lower() == GolfSwings.FULL_SWING
                 and club_3d is not None
             )
 
 
         if include_club and club_type is None:
-            logging.warning(f"Club Type not specified for Golf Swing: falling back to driver") 
-            club_type = "iron" #NOTE change to driver after passing all golden test
+            logging.warning("Club type not specified for golf swing; falling back to iron.")
+            club_type = GolfClubs.IRON
 
         if include_club and club_3d is None:
             raise ValueError("club_3d is required when include_club=True.")

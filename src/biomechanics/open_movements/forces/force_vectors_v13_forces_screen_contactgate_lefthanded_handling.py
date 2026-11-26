@@ -8,6 +8,7 @@ import os
 import math
 import logging
 from biomechanics.utils.output_keys import lowercase_output_keys
+from biomechanics.constants import Conversions, GolfClubs, GolfSwings, BaseballMovements
 
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
@@ -437,9 +438,9 @@ class ForceVectors:
     # preset -- e.g. add "golf": "for_golf" once golf inputs carry a matching
     # swingType value.
     _SWING_TYPE_PRESETS = {
-        "hitting": "for_baseball_swing",
-        "pitching": "for_pitching",
-        "full swing": "for_golf",
+        BaseballMovements.HITTING: "for_baseball_swing",
+        BaseballMovements.PITCHING: "for_pitching",
+        GolfSwings.FULL_SWING: "for_golf",
     }
 
     @staticmethod
@@ -537,7 +538,7 @@ class ForceVectors:
             except (KeyError, TypeError, AttributeError):
                 found = None
         if not isinstance(found, str) or not found.strip():
-            return "driver"
+            return GolfClubs.DRIVER
         return found.strip().lower()
 
     @classmethod
@@ -658,7 +659,7 @@ class ForceVectors:
         )
 
     def _run_pipeline(
-        self, pose3d, *, club_3d=None, club_type="driver",
+        self, pose3d, *, club_3d=None, club_type=GolfClubs.DRIVER,
         critical_events=None, lefty=False,
     ):
         """Shared numerical computation from explicit inputs; no JSON parsing."""
@@ -727,8 +728,8 @@ class ForceVectors:
         if self.include_club:
             if self.club_shaft_mass is None or self.club_head_mass is None:
                 # Default masses based on clubType in the input JSON (driver vs. iron)
-                club_type = str(club_type or "driver").strip().lower()
-                if club_type == "driver":
+                club_type = str(club_type or GolfClubs.DRIVER).strip().lower()
+                if club_type == GolfClubs.DRIVER:
                     self.club_shaft_mass = 0.059  # kg
                     self.club_head_mass = 0.192  # kg
                 else:
@@ -2203,7 +2204,7 @@ class ForceVectors:
     # that pairing so predicted and measured power traces are directly comparable; False
     # pairs matching axes (Fx*v_lateral, Fy*v_AP).
     POWER_AXIS_PAIRING_LIKE_MEASURED = True
-    _M_TO_IN = 0.3937007874
+    _M_TO_IN = Conversions.CM_TO_INCH
     # (mass fraction) used by the 2D-stick-figure COM models, same as the measured script
     _SEG_MASS_FRAC = {
         "head": 0.0694, "trunk": 0.4336, "arm": 0.0271, "forearm": 0.0162, "hand": 0.0061,
